@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 
-from model.database.databaseModel import Schema, Table, Column
+from model.database.database_model import Schema, Table, Column
 from utility.conversionFunctions import convertToInteger, convertToString, convertToDatetime, convertSPN
 from datetime import datetime
 

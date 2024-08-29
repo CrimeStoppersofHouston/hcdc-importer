@@ -1,15 +1,8 @@
 '''
- # @ Author: Ryan Barnes
- # @ Create Time: 2024-06-21 12:16:55
- # @ Modified by: Ryan Barnes
- # @ Modified time: 2024-06-21 12:16:57
- # @ Description: 
-    This file should contain the handler functions needed
-    to change the state of the program. The process for changing
-    the way the program operates should remain easy to understand
-    and tweak as needed. This design should allow for easy integration
-    of new functionalities as needed.
- '''
+    This module contains the handler functions needed
+    to change the states of program and file holder
+    classes.
+'''
 
 ### Internal Imports ###
 
@@ -18,7 +11,8 @@ from config.states import FileStates, ProgramStates, FileStateHolder, ProgramSta
 ### Function Declarations ###
 
 
-def changeProgramState(pstate: ProgramStateHolder):
+def change_program_state(pstate: ProgramStateHolder):
+    '''Progresses the program state of the given ProgramStateHolder'''
     match pstate.getState():
         case ProgramStates.INITIALIZATION:
             pstate.setState(ProgramStates.FILE_FETCH)
@@ -33,7 +27,8 @@ def changeProgramState(pstate: ProgramStateHolder):
             pstate.setState(ProgramStates.END)
 
 
-def changeFileState(fstate: FileStateHolder):
+def change_file_state(fstate: FileStateHolder):
+    '''Progresses the file state of the given FileStateHolder'''
     match fstate.getState():
         case FileStates.INITIALIZATION:
             fstate.setState(FileStates.SANITIZATION)

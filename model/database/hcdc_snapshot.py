@@ -4,113 +4,113 @@ from datetime import datetime
 
 ### Internal Imports ###
 
-from model.database.databaseModel import Table, Column, Schema
+from model.database.database_model import Table, Column, Schema
 
 ### Execution ###
 
 database = Schema(
     'testing'
-).addTable(
+).add_table(
     Table(
         'offense'
-    ).addColumn(
+    ).add_column(
         Column('curr_off', 'id', int)
-    ).addColumn(
+    ).add_column(
         Column('curr_off_lit', 'literal', str)
     )
-).addTable(
+).add_table(
     Table(
         'attorney'
-    ).addColumn(
+    ).add_column(
         Column('aty_spn', 'spn', str)
-    ).addColumn(
+    ).add_column(
         Column('aty_nam', 'name', str)
     )
-).addTable(
+).add_table(
     Table(
         'report'
-    ).addColumn(
+    ).add_column(
         Column('off_rpt_num', 'id', str)
-    ).addColumn(
+    ).add_column(
         Column('comp_agency', 'agency', str)
-    ).addColumn(
+    ).add_column(
         Column('comp_nam', 'name', str)
     )
-).addTable(
+).add_table(
     Table(
         'defendant'
-    ).addColumn(
+    ).add_column(
         Column('def_spn', 'spn', str)
-    ).addColumn(
+    ).add_column(
         Column('def_nam', 'name', str)
-    ).addColumn(
+    ).add_column(
         Column('def_rac', 'race', str)
-    ).addColumn(
+    ).add_column(
         Column('def_sex', 'sex', str)
-    ).addColumn(
+    ).add_column(
         Column('def_dob', 'date_of_birth', str)
-    ).addColumn(
+    ).add_column(
         Column('def_stnum', 'street_number', str)
-    ).addColumn(
+    ).add_column(
         Column('def_stnam', 'street_name', str)
-    ).addColumn(
+    ).add_column(
         Column('def_cty', 'city', str)
-    ).addColumn(
+    ).add_column(
         Column('def_st', 'state', str)
-    ).addColumn(
+    ).add_column(
         Column('def_zip', 'zip_code', str)
-    ).addColumn(
+    ).add_column(
         Column('def_citizen', 'citizen', str)
     )
-).addTable(
+).add_table(
     Table(
         'event'
-    ).addColumn(
+    ).add_column(
         Column('cas', 'case_id', int)
-    ).addColumn(
+    ).add_column(
         Column('cdi', 'case_type_id', int)
-    ).addColumn(
+    ).add_column(
         Column('disposition', 'disposition', str)
-    ).addColumn(
+    ).add_column(
         Column('cad', 'disposition_code', str)
-    ).addColumn(
+    ).add_column(
         Column('sentence', 'sentence', str)
-    ).addColumn(
+    ).add_column(
         Column('dispdt', 'disposition_date', datetime)
-    ).addColumn(
+    ).add_column(
         Column('bamexp', 'bond_explanation', str)
-    ).addColumn(
+    ).add_column(
         Column('bam', 'bond_amount', str)
     )
 )
 
 cases = Table(
         'cases'
-    ).addColumn(
+    ).add_column(
         Column('cas', 'id', int)
-    ).addColumn(
+    ).add_column(
         Column('cdi', 'case_type_id', int)
-    ).addColumn(
+    ).add_column(
         Column('off_rpt_num', 'report_id', str)
-    ).addColumn(
+    ).add_column(
         Column('curr_off', 'offense_id', int)
-    ).addColumn(
+    ).add_column(
         Column('def_spn', 'defendant_spn', str)
-    ).addColumn(
+    ).add_column(
         Column('cst', 'case_status_id', str)
-    ).addColumn(
+    ).add_column(
         Column('dst', 'defendant_status_id', str)
-    ).addColumn(
+    ).add_column(
         Column('aty_spn', 'attorney_spn', str)
-    ).addColumn(
+    ).add_column(
         Column('crt', 'court', int)
-    ).addColumn(
+    ).add_column(
         Column('fda', 'filing_date', datetime)
     )
 
-cases.addPrereq(database.getTablebyName('offense'))
-cases.addPrereq(database.getTablebyName('attorney'))
-cases.addPrereq(database.getTablebyName('defendant'))
-cases.addPrereq(database.getTablebyName('event'))
+cases.add_prereq(database.get_table_by_name('offense'))
+cases.add_prereq(database.get_table_by_name('attorney'))
+cases.add_prereq(database.get_table_by_name('defendant'))
+cases.add_prereq(database.get_table_by_name('event'))
 
-database.addTable(cases)
+database.add_table(cases)

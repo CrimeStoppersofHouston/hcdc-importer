@@ -4,7 +4,7 @@ import pyodbc
 from dotenv import load_dotenv
 
 from utility.connection.connectionPool import ConnectionPool
-from automation.schema_creation import hcdc_snapshot
+from automation.schema_creation import create_hcdc_snapshot
 
 class TestConnection(unittest.TestCase):
     def setUp(self):
@@ -93,7 +93,7 @@ class TestConnection(unittest.TestCase):
         self.connectionPool.addConnection()
         conn = self.connectionPool.getAvailableConnection()
 
-        hcdc_snapshot.create('testHCDC', conn, self.connectionPool)
+        create_hcdc_snapshot.create('testHCDC', conn, self.connectionPool)
 
         afterConn = self.connectionPool.getAvailableConnection()
 

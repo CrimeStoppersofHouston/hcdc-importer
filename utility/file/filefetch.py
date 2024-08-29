@@ -14,7 +14,7 @@ import os
 import glob
 from datetime import date
 import logging
-from config.flagParser import FlagParser
+from config.flag_parser import FlagParser
 
 ### Function Declarations ###
 
