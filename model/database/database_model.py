@@ -13,7 +13,7 @@ from typing import Self, Type, Dict, Callable
 import numpy as np
 
 ### Internal Imports ###
-from utility import conversionFunctions
+from utility import conversion_functions
 
 ### Class Declarations ###
 
@@ -28,13 +28,13 @@ class Column:
         else:
             match data_type:
                 case builtins.str:
-                    self.conversion_function = conversionFunctions.convertToString
+                    self.conversion_function = conversion_functions.convert_to_string
                 case builtins.int:
-                    self.conversion_function = conversionFunctions.convertToInteger
+                    self.conversion_function = conversion_functions.convert_to_integer
                 case np.datetime64:
-                    self.conversion_function = conversionFunctions.convertToDatetime
+                    self.conversion_function = conversion_functions.convert_to_datetime
                 case builtins.float:
-                    self.conversion_function = conversionFunctions.convertToFloat
+                    self.conversion_function = conversion_functions.convert_to_float
                 case _:
                     self.conversion_function = None
                     logging.error(

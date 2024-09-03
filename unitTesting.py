@@ -10,16 +10,16 @@
 
 ### Internal Imports ###
 
-from tests.testState import TestStateHolders
-from tests.testFileFunctions import TestFileFunctions
-from tests.testConnection import TestConnection
-from tests.testModels import TestModels
+import logging
 
 ### External Imports ###
-
 import unittest
-import logging
 from datetime import datetime
+
+from tests.test_connection import TestConnection
+from tests.test_file_functions import TestFileFunctions
+from tests.test_models import TestModels
+from tests.test_state import TestStateHolders
 
 ### Execution ###
 

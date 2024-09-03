@@ -15,9 +15,9 @@ import os
 from automation.hcdc_datasets_gathering import run_playwright
 from config.flag_parser import FlagParser
 from config.states import ProgramStateHolder, ProgramStates
-from handler.state_handler import changeProgramState
-from utility.file.filefetch import fetchFromDirectory
-from utility.file.filefetch import hcdcFileValidation
+from handler.state_handler import change_program_state
+from utility.file.fetch import fetch_from_directory
+from utility.file.fetch import hcdc_file_validation
 
 ### Function Declarations ###
 
@@ -49,7 +49,7 @@ def execute_program():
                 logging.info("Fetching filepaths...")
                 if parser.args.directory:
                     try:
-                        filepaths = fetchFromDirectory(
+                        filepaths = fetch_from_directory(
                             parser.args.directory,
                             parser.args.extension,
                             parser.args.recursive,
@@ -66,7 +66,7 @@ def execute_program():
                     try:
                         if parser.args.collect:
                             run_playwright()
-                        filepaths = hcdcFileValidation(
+                        filepaths = hcdc_file_validation(
                             parser.args.hcdc, parser.args.debug
                         )
                     except ValueError as e:
@@ -84,4 +84,4 @@ def execute_program():
             case ProgramStates.REPORTING:
                 pass
 
-        changeProgramState(program_state)
+        change_program_state(program_state)

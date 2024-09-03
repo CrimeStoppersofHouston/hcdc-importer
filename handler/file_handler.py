@@ -21,8 +21,8 @@ from config.flag_parser import FlagParser
 from config.states import FileStateHolder, FileStates
 from handler.state_handler import change_file_state
 from model.database import hcdc_snapshot
-from utility.connection.connectionPool import ConnectionPool
-from utility.file.fileload import loadDataframeCSV, loadDataframeXLSX
+from utility.connection.connection_pool import ConnectionPool
+from utility.file.load import load_dataframe_csv, load_dataframe_excel
 from automation.schema_creation import create_hcdc_snapshot
 
 ### Function Declarations ###
@@ -41,8 +41,8 @@ def handle_file(filepaths):
     )
     match parser.args.type:
         case "hcdc":
-            connection_pool.addConnection()
-            conn = connection_pool.getAvailableConnection()
+            connection_pool.add_connection()
+            conn = connection_pool.get_available_connection()
             create_hcdc_snapshot.create(os.getenv("DATABASE"), conn, connection_pool)
             connection_pool.clear()
 
@@ -64,13 +64,13 @@ def handle_file(filepaths):
                     logging.info("Loading file...")
                     match os.path.splitext(current_filepath)[1]:
                         case "xlsx":
-                            df = loadDataframeXLSX(current_filepath)
+                            df = load_dataframe_excel(current_filepath)
                         case "csv":
-                            df = loadDataframeCSV(
+                            df = load_dataframe_csv(
                                 current_filepath, parser.args.delimiter
                             )
                         case "txt":
-                            df = loadDataframeCSV(
+                            df = load_dataframe_csv(
                                 current_filepath, parser.args.delimiter
                             )
                         case _:
@@ -85,7 +85,7 @@ def handle_file(filepaths):
                     logging.info("Sanitizing columns for insertion...")
                     match parser.args.type:
                         case "hcdc":
-                            conversion_dict = hcdc_snapshot.database.getConversionDict()
+                            conversion_dict = hcdc_snapshot.database.get_conversion_dict()
                             for column, conversion_func in conversion_dict.items():
                                 df[column] = df[column].apply(conversion_func)
                             model = hcdc_snapshot.database
@@ -96,18 +96,18 @@ def handle_file(filepaths):
                     logging.info("All columns sanitized!")
 
                 case FileStates.STAGING:
-                    while not model.isCompleted():
-                        table = model.getAvailableTable()
+                    while not model.is_completed():
+                        table = model.get_available_table()
                         if table is None:
                             continue
 
                         if (
-                            len(connection_pool.availableConnections) == 0
+                            len(connection_pool.available_connections) == 0
                             and len(connection_pool.pool) < connection_pool.max_connections
                         ):
-                            connection_pool.addConnection()
+                            connection_pool.add_connection()
 
-                        if connection_pool.availableConnections > 0:
+                        if connection_pool.available_connections > 0:
                             pass
                             # connection = connection_pool.getAvailableConnection()
                             # threading.run(insert(df, table, conneciton, connection_pool))
@@ -115,18 +115,18 @@ def handle_file(filepaths):
                     connection_pool.clear()
 
                 case FileStates.MERGE:
-                    while not model.isCompleted():
-                        table = model.getAvailableTable()
+                    while not model.is_completed():
+                        table = model.get_available_table()
                         if table is None:
                             continue
 
                         if (
-                            len(connection_pool.availableConnections) == 0
+                            len(connection_pool.available_connections) == 0
                             and len(connection_pool.pool) < connection_pool.max_connections
                         ):
-                            connection_pool.addConnection()
+                            connection_pool.add_connection()
 
-                        if connection_pool.availableConnections > 0:
+                        if connection_pool.available_connections > 0:
                             pass
                             # connection = connection_pool.getAvailableConnection()
                             # threading.run(merge(df, table, conneciton, connection_pool))

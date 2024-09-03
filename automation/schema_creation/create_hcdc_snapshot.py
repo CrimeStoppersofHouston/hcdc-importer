@@ -11,7 +11,7 @@ import pyodbc
 
 ### Internal Imports ###
 
-from utility.connection.connectionPool import ConnectionPool
+from utility.connection.connection_pool import ConnectionPool
 
 ### Variable Declarations ###
 
