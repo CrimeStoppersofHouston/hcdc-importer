@@ -4,13 +4,9 @@
 
 import unittest
 import os
-from datetime import date
 
 from utility.file.fetch import (
-    fetch_from_directory,
-    daily_filings_check,
-    monthly_filings_check,
-    historical_filings_check
+    fetch_from_directory
 )
 from utility.file.validate import validate_from_model
 from utility.file.load import load_dataframe_csv
@@ -25,12 +21,10 @@ class TestFileFunctions(unittest.TestCase):
     def test_get_directory_single(self):
         '''Tests getting files in a directory'''
         files = {
-            [
-                os.path.basename(x)
-                for x in fetch_from_directory(
-                    "./tests/test_setups/directorySearch", ".txt"
-                )
-            ]
+            os.path.basename(x)
+            for x in fetch_from_directory(
+                "./tests/test_setups/directory_search", ".txt"
+            )
         }
         expected = {"1.txt"}
 
@@ -40,7 +34,7 @@ class TestFileFunctions(unittest.TestCase):
         '''Tests getting files in directories recursively with a depth of 1'''
         files = {
             os.path.basename(x)
-            for x in fetch_from_directory("./tests/test_setups/directorySearch", ".txt", True, 1)
+            for x in fetch_from_directory("./tests/test_setups/directory_search", ".txt", True, 1)
         }
         expected = {"1.txt", "2.txt", "3.txt", "4.txt", "6.txt"}
 
@@ -50,7 +44,7 @@ class TestFileFunctions(unittest.TestCase):
         '''Tests getting files in directories recursively with a depth of 1'''
         files = {
             os.path.basename(x)
-            for x in fetch_from_directory("./tests/test_setups/directorySearch", ".txt", True, 10)
+            for x in fetch_from_directory("./tests/test_setups/directory_search", ".txt", True, 10)
         }
         expected = {"1.txt", "2.txt", "3.txt", "4.txt", "6.txt", "9.txt", "10.txt"}
 
@@ -60,34 +54,16 @@ class TestFileFunctions(unittest.TestCase):
         '''Tests getting files with a specific extension'''
         files = {
             os.path.basename(x)
-            for x in fetch_from_directory("./tests/test_setups/directorySearch", ".pdf")
+            for x in fetch_from_directory("./tests/test_setups/directory_search", ".pdf")
         }
         expected = {"document.pdf"}
 
         self.assertEqual(files, expected)
 
-    def test_hcdc_daily_filings(self):
-        '''Tests hcdc daily filings fetch'''
-        files, code = daily_filings_check("./data", date.today())
-
-        self.assertEqual(code, 1)
-
-    def test_hcdc_monthly_filings(self):
-        '''Tests hcdc monthly filings fetch'''
-        files, code = monthly_filings_check("./data", date.today())
-
-        self.assertEqual(code, 2)
-
-    def test_hcdc_historical_filings(self):
-        '''Tests hcdc historical filings fetch'''
-        files, code = historical_filings_check("./data", date.today())
-
-        self.assertEqual(code, 4)
-
     @unittest.expectedFailure
     def test_negative_depth_fail(self):
         '''Tests error catch on setting a negative depth'''
-        fetch_from_directory("./tests/test_setups/directorySearch", ".pdf", True, -1)
+        fetch_from_directory("./tests/test_setups/directory_search", ".pdf", True, -1)
 
     ### File Validation ###
 

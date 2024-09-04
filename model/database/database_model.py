@@ -85,7 +85,7 @@ class Table:
         '''Returns a dictionary containing each column name with its conversion function'''
         return_dict = {}
         for column in self.columns:
-            return_dict[column.rawName] = column.conversion_function
+            return_dict[column.raw_name] = column.conversion_function
         return return_dict
 
 
@@ -141,7 +141,7 @@ class Schema:
 
     def advance_table_state(self, table: Table):
         '''Advances the given table's state'''
-        table.advanceState()
+        table.advance_state()
         match table.status:
             case TableStatus.INPROGRESS:
                 self.pending_tables.remove(table)

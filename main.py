@@ -12,8 +12,8 @@
  '''
 
 ### Internal Imports ###
-from handler.executionhandler import executeProgram
+from handler.execution_handler import execute_program
 
 ### Execution ###
 
-executeProgram()
+execute_program()

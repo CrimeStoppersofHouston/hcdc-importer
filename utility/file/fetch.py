@@ -64,62 +64,69 @@ def hcdc_file_validation(directory_path: str, debug: bool= False):
     filepaths += file_list
     code += status
     code_check(code)
-    return filepaths, code
+    return filepaths
 
 
-def daily_filings_check(directory_path: str, date: date):
-    file_list = glob.glob(f'{directory_path}\\*[0-9]-*[0-9]-*[0-9] CrimFilingsDaily_withHeadings.txt')
+def daily_filings_check(directory_path: str, check_date: date):
+    '''Checks for daily filings file'''
+    file_list = glob.glob(
+        f'{directory_path}\\*[0-9]-*[0-9]-*[0-9] CrimFilingsDaily_withHeadings.txt'
+    )
     status = 0
     latest_file = max(file_list)
     if latest_file:
         status = 1
-        logging.info(f'Daily Filing found in {latest_file}')
-    
+        logging.info('Daily Filing found in %s', latest_file)
+
     if FlagParser.instance.args.debug:
-        if latest_file.find(f'{date.year}-{date.month:02d}-{date.day:02d}') != -1 :
-            logging.debug(f'{latest_file} corresponds to today - {date}')
+        if latest_file.find(f'{check_date.year}-{check_date.month:02d}-{check_date.day:02d}') != -1 :
+            logging.debug('%s corresponds to today - %s', latest_file, check_date)
         else:
-            logging.debug(f'Daily file does not correspond to today - {date}')
-        
-        
+            logging.debug('Daily file does not correspond to today - %s', check_date)
+
     return file_list, status
 
 
-def monthly_filings_check(directory_path: str, date: date):
-    file_list = glob.glob(f'{directory_path}\\*[0-9]-*[0-9]-*[0-9] CrimFilingsMonthly_withHeadings.txt')
+def monthly_filings_check(directory_path: str, check_date: date):
+    '''Checks for monthly filings file'''
+    file_list = glob.glob(
+        f'{directory_path}\\*[0-9]-*[0-9]-*[0-9] CrimFilingsMonthly_withHeadings.txt'
+    )
     status = 0
     latest_file = max(file_list)
     if latest_file:
         status = 2
-        logging.info(f'Monthly Filing found in {latest_file}')
-    
+        logging.info('Monthly Filing found in %s', latest_file)
+
     if FlagParser.instance.args.debug:
-        if latest_file.find(fr'{date.year}-{date.month:02d}') != -1 :
-            logging.debug(f'{latest_file} corresponds to this month - {date}')
+        if latest_file.find(fr'{check_date.year}-{check_date.month:02d}') != -1 :
+            logging.debug('%s corresponds to this month - %s', latest_file, check_date)
         else:
-            logging.debug(f'Monthly file does not correspond to this month - {date}')
-            
+            logging.debug('Monthly file does not correspond to this month - %s', check_date)
+
     return file_list, status
 
 
-def historical_filings_check(directory_path: str, date: date):
+def historical_filings_check(directory_path: str, check_date):
+    '''Checks for historical file'''
     file_list = glob.glob(f'{directory_path}\\Weekly_Historical_Criminal_*[0-9].txt')
     latest_file = max(file_list)
     status = 0
     if latest_file:
         status = 4
-        logging.info(f'Historical Filing found in {latest_file}')
+        logging.info('Historical Filing found in %s', latest_file)
         
     if FlagParser.instance.args.debug:
-        if latest_file.find(fr'{date.year}{date.month:02d}') != -1 :
-            logging.debug(f'{latest_file} corresponds to this month - {date}')
+        if latest_file.find(fr'{check_date.year}{check_date.month:02d}') != -1 :
+            logging.debug('%s corresponds to this month - %s', latest_file, check_date)
         else:
-            logging.debug(f'Historical file does not correspond to this month - {date}') 
-        
+            logging.debug('Historical file does not correspond to this month - %s', check_date) 
+
     return file_list, status
 
 
 def code_check(code: int):
+    '''Returns a status code based on the files found'''
     match code:
         case 0:
             logging.info("No HCDC files found")
@@ -137,4 +144,3 @@ def code_check(code: int):
             logging.info("MISSING FILES: Daily Filings")
         case 7:
             logging.info("All HCDC files found") 
-            

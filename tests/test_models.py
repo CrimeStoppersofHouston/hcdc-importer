@@ -158,7 +158,7 @@ class TestModels(unittest.TestCase):
                 Table("Sample Table 1")
                 .add_column(Column("int", "intnew", int))
                 .add_column(
-                    Column("spn", "spnnew", str, conversionFunction=convert_to_spn)
+                    Column("spn", "spnnew", str, conversion_function=convert_to_spn)
                 )
                 .add_column(Column("datetime", "datetimenew", np.datetime64))
             )
@@ -188,7 +188,7 @@ class TestModels(unittest.TestCase):
                 Table("Sample Table 1")
                 .add_column(Column("int", "intnew", int))
                 .add_column(
-                    Column("spn", "spnnew", str, conversionFunction=convert_to_spn)
+                    Column("spn", "spnnew", str, conversion_function=convert_to_spn)
                 )
                 .add_column(Column("datetime", "datetimenew", int))
             )

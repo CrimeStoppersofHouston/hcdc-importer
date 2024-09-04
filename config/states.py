@@ -53,7 +53,6 @@ class StateHolder():
 class FileStateHolder(StateHolder):
     '''Child class of StateHolder that holds file states'''
     # Singleton instance to avoid creating multiple instances
-    @classmethod
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(FileStateHolder, cls).__new__(cls)
@@ -66,7 +65,6 @@ class FileStateHolder(StateHolder):
 class ProgramStateHolder(StateHolder):
     '''Child class of StateHolder that holds program states'''
     # Singleton instance to avoid creating multiple instances
-    @classmethod
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(ProgramStateHolder, cls).__new__(cls)

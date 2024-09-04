@@ -267,8 +267,8 @@ def create(
         cursor.commit()
 
         old_database = connection_pool.database
-        connection_pool.setDatabase(schema_name)
-        new_connection = connection_pool.getConnection()
+        connection_pool.set_database(schema_name)
+        new_connection = connection_pool.get_connection()
         new_cursor = new_connection.cursor()
         new_cursor.execute(f"use {schema_name};")
         new_cursor.commit()
@@ -277,5 +277,5 @@ def create(
         new_cursor.commit()
         new_connection.close()
 
-        connection_pool.setDatabase(old_database)
-        connection_pool.freeConnection(connection)
+        connection_pool.set_database(old_database)
+        connection_pool.free_connection(connection)

@@ -8,6 +8,7 @@ from config.states import FileStateHolder, ProgramStateHolder, FileStates, Progr
 
 
 class TestStateHolders(unittest.TestCase):
+    '''Tests functionality of state holders'''
     def setUp(self):
         self.fstate = FileStateHolder()
         self.pstate = ProgramStateHolder()

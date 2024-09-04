@@ -151,7 +151,7 @@ cython_debug/
 *.txt
 !requirements.txt
 
-!**/testSetups/**
+!**/test_setups/**
 
 # PyCharm
 #  JetBrains specific template is maintainted in a separate JetBrains.gitignore that can

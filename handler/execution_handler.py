@@ -12,7 +12,7 @@ import os
 
 ### Internal Imports ###
 
-from automation.hcdc_datasets_gathering import run_playwright
+from automation.hcdc_datasets_gathering import download_hcdc
 from config.flag_parser import FlagParser
 from config.states import ProgramStateHolder, ProgramStates
 from handler.state_handler import change_program_state
@@ -65,7 +65,14 @@ def execute_program():
                 elif parser.args.hcdc:
                     try:
                         if parser.args.collect:
-                            run_playwright()
+                            download_hcdc(
+                                './data',
+                                filings_daily=False,
+                                dispos_daily=False,
+                                filings_monthly=False,
+                                dispos_monthly=False,
+                                historical=True
+                            )
                         filepaths = hcdc_file_validation(
                             parser.args.hcdc, parser.args.debug
                         )

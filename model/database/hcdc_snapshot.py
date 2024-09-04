@@ -1,6 +1,7 @@
 ### External Imports ###
 
 from datetime import datetime
+from numpy import datetime64
 
 ### Internal Imports ###
 
@@ -76,7 +77,7 @@ database = Schema(
     ).add_column(
         Column('sentence', 'sentence', str)
     ).add_column(
-        Column('dispdt', 'disposition_date', datetime)
+        Column('dispdt', 'disposition_date', datetime64)
     ).add_column(
         Column('bamexp', 'bond_explanation', str)
     ).add_column(
@@ -105,7 +106,7 @@ cases = Table(
     ).add_column(
         Column('crt', 'court', int)
     ).add_column(
-        Column('fda', 'filing_date', datetime)
+        Column('fda', 'filing_date', datetime64)
     )
 
 cases.add_prereq(database.get_table_by_name('offense'))
