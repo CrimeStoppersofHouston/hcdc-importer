@@ -70,6 +70,6 @@ class TestFileFunctions(unittest.TestCase):
     def test_hcdc_validation(self):
         '''Tests valiation of file based on model'''
         df = load_dataframe_csv(
-            "./tests/test_setups/sampleFile/HCDC_sample_chunk.txt", "\t"
+            "./tests/test_setups/sample_file/HCDC_sample_chunk.txt", "\t", 'ANSI'
         )
-        self.assertTrue(validate_from_model(df, hcdc_snapshot))
+        self.assertTrue(validate_from_model(df, hcdc_snapshot.database))

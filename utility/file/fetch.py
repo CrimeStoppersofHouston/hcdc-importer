@@ -50,7 +50,8 @@ def fetch_from_directory(
     return file_list
 
 
-def hcdc_file_validation(directory_path: str, debug: bool= False):
+def hcdc_file_validation(directory_path: str):
+    '''Checks if files were found for certain hcdc datasets'''
     todays_date = date.today()
     filepaths = []
     code = 0

@@ -54,3 +54,6 @@ def convert_to_spn(value, none_value = None):
     if value is None or str(value).strip() == '':
         return none_value
     return str(value).strip().zfill(8)
+
+def convert_array_to_sql(array: list) -> str:
+    pass

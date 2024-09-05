@@ -1,6 +1,5 @@
 ### External Imports ###
 
-from datetime import datetime
 from numpy import datetime64
 
 ### Internal Imports ###
