@@ -13,6 +13,7 @@ import pandas as pd
 
 ### Internal Imports ###
 
+from utility.conversion_functions import convert_to_sql
 from utility.connection.connection_pool import ConnectionPool
 from model.database.database_model import Schema, Table
 
@@ -60,13 +61,36 @@ def insert_to_stage_table(
     '''
         Inserts data from a dataframe given a connection object, a schema, 
         and the stage table to insert into. 
-        Intended to work with the ConnectionPool object.
+        Intended to work with the ConnectionPool object. Frees connection at
+        the end of execution.
     '''
     total_rows = len(df)
     column_keys = [column.name for column in table.columns]
+    sql = f'INSERT INTO {schema.name}.stage_{table.name} ({",".join(column_keys)}) VALUES '
     
     with closing(connection.cursor()) as cursor:
         reset_stage_table(cursor, schema, table)
         logging.info('Starting insertion for table stage_%s', table.name)
+        rows = []
         for index, row in df.iterrows():
-            pass
+            if index % limit == 0 and index != 0:
+                if len(rows) != 0:
+                    execute_sql(
+                        cursor,
+                        f'{sql}{",".join(rows)} ON DUPLICATE KEY UPDATE `{column_keys[0]}`=`{column_keys[0]}`;'
+                    )
+                    # progress tracker update
+                rows = []
+            insert = [row[col] for col in column_keys]
+            if any(insert):
+                sql_string = convert_to_sql(insert)
+                rows.append(sql_string)
+        if len(rows) != 0:
+            execute_sql(
+                cursor, 
+                f'{sql}{",".join(rows)} ON DUPLICATE KEY UPDATE `{column_keys[0]}`=`{column_keys[0]}`;'
+            )
+        cursor.commit()
+        logging.info('Table %s successfully inserted!', table)
+        schema.advance_table_state(table)
+        connection_pool.free_connection(connection)

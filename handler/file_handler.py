@@ -14,6 +14,7 @@
 
 import logging
 import os
+import threading
 
 ### Internal Imports ###
 
@@ -24,6 +25,7 @@ from model.database import hcdc_snapshot
 from utility.connection.connection_pool import ConnectionPool
 from utility.file.load import load_dataframe_csv, load_dataframe_excel
 from automation.schema_creation import create_hcdc_snapshot
+from utility.connection.cursor_actions import insert_to_stage_table
 
 ### Function Declarations ###
 
@@ -108,9 +110,11 @@ def handle_file(filepaths):
                             connection_pool.add_connection()
 
                         if connection_pool.available_connections > 0:
-                            pass
-                            # connection = connection_pool.getAvailableConnection()
-                            # threading.run(insert(df, table, conneciton, connection_pool))
+                            connection = connection_pool.get_available_connection()
+                            threading.Thread(
+                                target=insert_to_stage_table,
+                                args=[connection_pool, connection, df, model, table]
+                            ).start()
 
                     connection_pool.clear()
 
@@ -128,7 +132,6 @@ def handle_file(filepaths):
 
                         if connection_pool.available_connections > 0:
                             pass
-                            # connection = connection_pool.getAvailableConnection()
                             # threading.run(merge(df, table, conneciton, connection_pool))
 
                     connection_pool.clear()

@@ -74,7 +74,7 @@ def execute_program():
                                 historical=True
                             )
                         filepaths = hcdc_file_validation(
-                            parser.args.hcdc, parser.args.debug
+                            parser.args.hcdc
                         )
                     except ValueError as e:
                         logging.error("Invalid argument supplied: %s", e)
