@@ -49,6 +49,10 @@ class ConnectionPool:
             return None
         self.max_connections = max_connections
 
+    def all_connections_blocked(self) -> bool:
+        '''Returns True if all connections are blocked'''
+        return len(self.blocked_connections) == self.max_connections
+
     def get_connection(self, max_retries: int = 5) -> pyodbc.Connection:
         '''Returns a pyodbc connection object'''
         connection = None

@@ -13,9 +13,9 @@
 
 from typing import Iterable
 import logging
+from datetime import datetime
 
 import pandas as pd
-from datetime import datetime
 from sqlescapy import sqlescape
 
 ### Function Declarations ###

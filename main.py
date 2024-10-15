@@ -11,9 +11,15 @@
         to the appropriate handler functions.
  '''
 
+### External Imports ###
+
+from dotenv import load_dotenv
+
 ### Internal Imports ###
+
 from handler.execution_handler import execute_program
 
 ### Execution ###
 
+load_dotenv(override=True)
 execute_program()

@@ -136,7 +136,7 @@ class Schema:
 
     def is_completed(self):
         '''Returns True if all tables are marked as completed'''
-        return self.completed_tables.issubset(self.tables)
+        return self.completed_tables.intersection(self.tables) == self.tables
 
 
     def advance_table_state(self, table: Table):

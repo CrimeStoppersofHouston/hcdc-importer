@@ -20,7 +20,7 @@ def load_dataframe_csv(filepath, delimiter:str = ',', encoding_type='utf-8') -> 
         raise ValueError(f'File {filepath} does not exist')
     try:
         with contextlib.closing(open(filepath, 'r', encoding=encoding_type)) as f:
-            df = pd.read_csv(f, sep=delimiter, dtype=str)
+            df = pd.read_csv(f, sep=delimiter, dtype=str, engine='python')
             df = df.replace(np.nan, None)
             return df
     except Exception as e:

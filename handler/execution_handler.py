@@ -6,18 +6,18 @@
 ### External Imports ###
 
 import logging
-from datetime import datetime
-import sys
 import os
+import sys
+from datetime import datetime
 
 ### Internal Imports ###
 
 from automation.hcdc_datasets_gathering import download_hcdc
 from config.flag_parser import FlagParser
 from config.states import ProgramStateHolder, ProgramStates
+from handler.file_handler import handle_file
 from handler.state_handler import change_program_state
-from utility.file.fetch import fetch_from_directory
-from utility.file.fetch import hcdc_file_validation
+from utility.file.fetch import fetch_from_directory, hcdc_file_validation
 
 ### Function Declarations ###
 
@@ -86,7 +86,8 @@ def execute_program():
                 logging.info("%d files fetched", len(filepaths))
 
             case ProgramStates.FILE_PROCESSING:
-                pass
+                handle_file(filepaths)
+
 
             case ProgramStates.REPORTING:
                 pass

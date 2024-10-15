@@ -8,14 +8,15 @@
 import logging
 from contextlib import closing
 
-import pyodbc
 import pandas as pd
+import pyodbc
 
 ### Internal Imports ###
 
-from utility.conversion_functions import convert_to_sql
-from utility.connection.connection_pool import ConnectionPool
 from model.database.database_model import Schema, Table
+from utility.connection.connection_pool import ConnectionPool
+from utility.conversion_functions import convert_to_sql
+from utility.progress_tracking import ProgressTracker, Task
 
 ### Function Declarations ###
 
@@ -30,7 +31,7 @@ def execute_sql(cursor: pyodbc.Cursor, sql: str, max_retries: int = 5, attempt: 
     else:
         try:
             cursor.execute(sql)
-        except:
+        except Exception:
             execute_sql(cursor, sql, max_retries, attempt+1)
 
 
@@ -55,7 +56,7 @@ def insert_to_stage_table(
     df: pd.DataFrame,
     schema: Schema,
     table: Table,
-    progress_tracker = None,
+    tracker: ProgressTracker,
     limit = 1000
 ) -> None:
     '''
@@ -65,32 +66,37 @@ def insert_to_stage_table(
         the end of execution.
     '''
     total_rows = len(df)
-    column_keys = [column.name for column in table.columns]
+    table_task = Task(f'stage_{table.name}', total_rows)
+    tracker.add_task(table_task)
+    columns = [column for column in table.columns]
+    column_keys = [column.name for column in columns]
     sql = f'INSERT INTO {schema.name}.stage_{table.name} ({",".join(column_keys)}) VALUES '
-    
+
     with closing(connection.cursor()) as cursor:
         reset_stage_table(cursor, schema, table)
-        logging.info('Starting insertion for table stage_%s', table.name)
         rows = []
         for index, row in df.iterrows():
             if index % limit == 0 and index != 0:
                 if len(rows) != 0:
                     execute_sql(
                         cursor,
-                        f'{sql}{",".join(rows)} ON DUPLICATE KEY UPDATE `{column_keys[0]}`=`{column_keys[0]}`;'
+                        (f'{sql}{",".join(rows)} ON DUPLICATE KEY '
+                         f'UPDATE `{column_keys[0]}`=`{column_keys[0]}`;')
                     )
-                    # progress tracker update
+                    table_task.set_progress(index+1)
+                    tracker.update()
                 rows = []
-            insert = [row[col] for col in column_keys]
+            insert = [row[col.raw_name] for col in columns]
             if any(insert):
                 sql_string = convert_to_sql(insert)
                 rows.append(sql_string)
         if len(rows) != 0:
             execute_sql(
-                cursor, 
-                f'{sql}{",".join(rows)} ON DUPLICATE KEY UPDATE `{column_keys[0]}`=`{column_keys[0]}`;'
+                cursor,
+                (f'{sql}{",".join(rows)} ON DUPLICATE KEY '
+                 f'UPDATE `{column_keys[0]}`=`{column_keys[0]}`;')
             )
+            table_task.set_progress(total_rows)
         cursor.commit()
-        logging.info('Table %s successfully inserted!', table)
         schema.advance_table_state(table)
         connection_pool.free_connection(connection)

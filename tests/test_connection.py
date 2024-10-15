@@ -112,3 +112,13 @@ class TestConnection(unittest.TestCase):
         self.assertNotEqual(0, len(creation_check))
 
         cleanup_cursor.close()
+
+
+    def test_detect_all_blocked_connections(self):
+        '''Tests if connection pool will detect if all connections are blocked'''
+        self.connection_pool.set_max_connections(1)
+        self.connection_pool.add_connection()
+        self.connection_pool.get_available_connection()
+        self.assertTrue(self.connection_pool.all_connections_blocked())
+        self.connection_pool.clear()
+        self.connection_pool.set_max_connections(5)

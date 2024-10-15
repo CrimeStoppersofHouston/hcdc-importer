@@ -13,34 +13,34 @@ from config.states import FileStates, ProgramStates, FileStateHolder, ProgramSta
 
 def change_program_state(pstate: ProgramStateHolder):
     '''Progresses the program state of the given ProgramStateHolder'''
-    match pstate.getState():
+    match pstate.get_state():
         case ProgramStates.INITIALIZATION:
-            pstate.setState(ProgramStates.FILE_FETCH)
+            pstate.set_state(ProgramStates.FILE_FETCH)
 
         case ProgramStates.FILE_FETCH:
-            pstate.setState(ProgramStates.FILE_PROCESSING)
+            pstate.set_state(ProgramStates.FILE_PROCESSING)
 
         case ProgramStates.FILE_PROCESSING:
-            pstate.setState(ProgramStates.REPORTING)
+            pstate.set_state(ProgramStates.REPORTING)
 
         case ProgramStates.REPORTING:
-            pstate.setState(ProgramStates.END)
+            pstate.set_state(ProgramStates.END)
 
 
 def change_file_state(fstate: FileStateHolder):
     '''Progresses the file state of the given FileStateHolder'''
-    match fstate.getState():
+    match fstate.get_state():
         case FileStates.INITIALIZATION:
-            fstate.setState(FileStates.SANITIZATION)
+            fstate.set_state(FileStates.LOADING)
 
         case FileStates.LOADING:
-            fstate.setState(FileStates.SANITIZATION)
+            fstate.set_state(FileStates.SANITIZATION)
 
         case FileStates.SANITIZATION:
-            fstate.setState(FileStates.STAGING)
+            fstate.set_state(FileStates.STAGING)
 
         case FileStates.STAGING:
-            fstate.setState(FileStates.MERGE)
+            fstate.set_state(FileStates.MERGE)
 
         case FileStates.MERGE:
-            fstate.setState(FileStates.END)
+            fstate.set_state(FileStates.END)

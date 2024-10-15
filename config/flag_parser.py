@@ -17,11 +17,10 @@ class FlagParser(argparse.ArgumentParser):
     """
 
     # Singleton instance to avoid creating multiple instances
-    @classmethod
-    def __new__(cls):
-        if not hasattr(cls, "instance"):
-            cls.instance = super(FlagParser, cls).__new__(cls)
-        return cls.instance
+    def __new__(self):
+        if not hasattr(self, "instance"):
+            self.instance = super(FlagParser, self).__new__(self)
+        return self.instance
 
 
     def __init__(self):
@@ -93,7 +92,8 @@ class FlagParser(argparse.ArgumentParser):
             "-depth",
             type=int,
             default=3,
-            help="Depth of the recursion search when using the --directory argument with --recursive enabled. Defaults to 3.",
+            help=("Depth of the recursion search when using the "
+                  "--directory argument with --recursive enabled. Defaults to 3."),
         )
 
         self.add_argument(
@@ -108,6 +108,19 @@ class FlagParser(argparse.ArgumentParser):
             type=str,
             help="Specifies the type of file to use. (HCDC, etc.)",
             required=True,
+        )
+
+        self.add_argument(
+            "-skipCreation",
+            action="store_true",
+            default=False,
+            help="Skips creation of database"
+        )
+
+        self.add_argument(
+            "-encoding",
+            default='utf-8',
+            help="Sets the encoding for files to be loaded in"
         )
 
         self.args = self.parse_args()

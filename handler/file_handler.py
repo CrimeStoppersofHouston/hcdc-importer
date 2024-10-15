@@ -18,14 +18,15 @@ import threading
 
 ### Internal Imports ###
 
+from automation.schema_creation import create_hcdc_snapshot
 from config.flag_parser import FlagParser
 from config.states import FileStateHolder, FileStates
 from handler.state_handler import change_file_state
 from model.database import hcdc_snapshot
 from utility.connection.connection_pool import ConnectionPool
-from utility.file.load import load_dataframe_csv, load_dataframe_excel
-from automation.schema_creation import create_hcdc_snapshot
 from utility.connection.cursor_actions import insert_to_stage_table
+from utility.file.load import load_dataframe_csv, load_dataframe_excel
+from utility.progress_tracking import ProgressTracker, Task
 
 ### Function Declarations ###
 
@@ -41,12 +42,16 @@ def handle_file(filepaths):
         os.getenv("DATABASE"),
         os.getenv("DRIVER"),
     )
-    match parser.args.type:
-        case "hcdc":
-            connection_pool.add_connection()
-            conn = connection_pool.get_available_connection()
-            create_hcdc_snapshot.create(os.getenv("DATABASE"), conn, connection_pool)
-            connection_pool.clear()
+    if not parser.args.skipCreation:
+        match parser.args.type:
+            case "hcdc":
+                connection_pool.add_connection()
+                conn = connection_pool.get_available_connection()
+                create_hcdc_snapshot.create(os.getenv("DATABASE"), conn, connection_pool)
+                connection_pool.clear()
+            case _:
+                logging.error('Unimplemented type : %s', parser.args.type)
+                raise ValueError(f"Unimplemented type :{parser.args.type}")
 
     for i, current_filepath in enumerate(filepaths):
         file_state = FileStateHolder()
@@ -64,16 +69,23 @@ def handle_file(filepaths):
 
                 case FileStates.LOADING:
                     logging.info("Loading file...")
+                    tracker = ProgressTracker(
+                        f'File {i+1}: {os.path.basename(current_filepath)[:40]}...'
+                    )
+                    loading_task = Task('Loading', 1)
+                    tracker.add_task(loading_task)
+                    tracker.update()
+
                     match os.path.splitext(current_filepath)[1]:
-                        case "xlsx":
+                        case ".xlsx":
                             df = load_dataframe_excel(current_filepath)
-                        case "csv":
+                        case ".csv":
                             df = load_dataframe_csv(
-                                current_filepath, parser.args.delimiter
+                                current_filepath, parser.args.delimiter, parser.args.encoding
                             )
-                        case "txt":
+                        case ".txt":
                             df = load_dataframe_csv(
-                                current_filepath, parser.args.delimiter
+                                current_filepath, parser.args.delimiter, parser.args.encoding
                             )
                         case _:
                             logging.error(
@@ -81,26 +93,46 @@ def handle_file(filepaths):
                                 os.path.splitext(current_filepath)[1]
                             )
                             file_state.set_state(FileStates.END)
+                    tracker.clear()
                     logging.info("%s loaded successfully!", current_filepath)
+                    loading_task.add_progress(1)
+                    tracker.update(True)
 
                 case FileStates.SANITIZATION:
+                    tracker.clear()
                     logging.info("Sanitizing columns for insertion...")
+                    tracker.update(True)
                     match parser.args.type:
                         case "hcdc":
                             conversion_dict = hcdc_snapshot.database.get_conversion_dict()
+                            sanitization_task = Task('Converting columns', len(conversion_dict))
+                            tracker.add_task(sanitization_task)
                             for column, conversion_func in conversion_dict.items():
                                 df[column] = df[column].apply(conversion_func)
+                                sanitization_task.add_progress(1)
+                                tracker.update()
                             model = hcdc_snapshot.database
+                            model.name = os.getenv("DATABASE")
                         case _:
                             raise ValueError(
                                 f"Unimplemented format: {parser.args.type}"
                             )
+                    tracker.clear()
                     logging.info("All columns sanitized!")
+                    tracker.update(True)
 
                 case FileStates.STAGING:
+                    tracker.clear()
+                    logging.info("Inserting to stage tables")
+                    tracker.update(True)
+                    threads = []
                     while not model.is_completed():
                         table = model.get_available_table()
-                        if table is None:
+                        if (
+                            table is None or
+                            connection_pool.all_connections_blocked()
+                        ):
+                            threads.pop().join()
                             continue
 
                         if (
@@ -109,14 +141,21 @@ def handle_file(filepaths):
                         ):
                             connection_pool.add_connection()
 
-                        if connection_pool.available_connections > 0:
+                        if len(connection_pool.available_connections) > 0:
+                            #tracker.log_info(f'Starting insertion of stage_{table.name}')
                             connection = connection_pool.get_available_connection()
-                            threading.Thread(
+                            t = threading.Thread(
                                 target=insert_to_stage_table,
-                                args=[connection_pool, connection, df, model, table]
-                            ).start()
+                                args=[connection_pool, connection, df, model, table, tracker]
+                            )
+                            threads.append(t)
+                            t.start()
 
                     connection_pool.clear()
+                    tracker.clear()
+                    logging.info("Finished inserting to stage tables")
+                    tracker.update(True)
+                    exit()
 
                 case FileStates.MERGE:
                     while not model.is_completed():
