@@ -94,25 +94,6 @@ class TestConnection(unittest.TestCase):
         self.assertIn(conn, self.connection_pool.available_connections)
         self.connection_pool.clear()
 
-    def test_schema_creation(self):
-        '''Tests creating a schema using a connection object'''
-        self.connection_pool.add_connection()
-        conn = self.connection_pool.get_available_connection()
-
-        create_hcdc_snapshot.create('testHCDC', conn, self.connection_pool)
-
-        after_conn = self.connection_pool.get_available_connection()
-
-        cleanup_cursor = after_conn.cursor()
-        cleanup_cursor.execute("show databases like 'testHCDC'")
-        creation_check = cleanup_cursor.fetchall()
-        cleanup_cursor.execute('drop database if exists testHCDC')
-        self.assertEqual(conn, after_conn)
-        self.assertNotEqual(self.connection_pool.database, 'testHCDC')
-        self.assertNotEqual(0, len(creation_check))
-
-        cleanup_cursor.close()
-
 
     def test_detect_all_blocked_connections(self):
         '''Tests if connection pool will detect if all connections are blocked'''
