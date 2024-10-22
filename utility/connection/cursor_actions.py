@@ -35,17 +35,35 @@ def execute_sql(cursor: pyodbc.Cursor, sql: str, max_retries: int = 5, attempt: 
             execute_sql(cursor, sql, max_retries, attempt+1)
 
 
+def get_max(cursor: pyodbc.Cursor, schema: str, table: str, column: str):
+    '''Gets the max value of the given column'''
+    query = f'select max({column}) from {schema}.{table}'
+    execute_sql(cursor, query)
+    value = cursor.fetchall()[0][0]
+    return int(value if value is not None else 0)
+
+def get_min(cursor: pyodbc.Cursor, schema: str, table: str, column: str):
+    '''Gets the min value of the given column'''
+    query = f'select min({column}) from {schema}.{table}'
+    execute_sql(cursor, query)
+    value = cursor.fetchall()[0][0]
+    return int(value if value is not None else 0)
+
 def reset_stage_table(cursor:pyodbc.Cursor, schema: Schema, table: Table) -> None:
     '''
         Clears a table's data by dropping and remaking it. This should
         only be done with a prep table as it will not retain foreign relationships
     '''
     logging.debug('Resetting stage table: %s', table.name)
-    execute_sql(cursor, f'RENAME table {schema.name}.stage_{table.name} to {schema.name}.t1')
+    execute_sql(cursor,
+        f'RENAME table {schema.name}.stage_{table.name} to {schema.name}.stage_{table.name}_temp'
+    )
     logging.debug('stage_%s prepared for deletion', table.name)
-    execute_sql(cursor, f'create table {schema.name}.stage_{table.name} like {schema.name}.t1')
+    execute_sql(cursor,
+        f'create table {schema.name}.stage_{table.name} like {schema.name}.stage_{table.name}_temp'
+    )
     logging.debug('Created empty stage_%s', table.name)
-    execute_sql(cursor, f'drop table {schema.name}.t1')
+    execute_sql(cursor, f'drop table {schema.name}.stage_{table.name}_temp')
     execute_sql(cursor, f'alter table {schema.name}.stage_{table.name} auto_increment = 1')
     logging.debug('stage_%s cleared!', table.name)
 
@@ -97,6 +115,44 @@ def insert_to_stage_table(
                  f'UPDATE `{column_keys[0]}`=`{column_keys[0]}`;')
             )
             table_task.set_progress(total_rows)
+        cursor.commit()
+        schema.advance_table_state(table)
+        connection_pool.free_connection(connection)
+
+def insert_to_final_table(
+    connection_pool: ConnectionPool,
+    connection: pyodbc.Connection,
+    schema: Schema,
+    table: Table,
+    tracker: ProgressTracker,
+    limit = 1000
+):
+    '''Inserts data from staging table to final table'''
+    with closing(connection.cursor()) as cursor:
+        minimum = get_min(cursor, schema.name, f'stage_{table.name}', 'entry')
+        maximum = get_max(cursor, schema.name, f'stage_{table.name}', 'entry')
+        total_rows = maximum-minimum
+
+        table_task = Task(table.name, total_rows//limit+2)
+        tracker.add_task(table_task)
+        columns = [column.name for column in table.columns]
+        pairs = [
+            f'{schema.name}.{table.name}.{column} '
+            f'= {schema.name}.stage_{table.name}.{column}'
+            for column in columns
+        ]
+
+        for i in range(total_rows//limit+2):
+            sql = f"""
+                INSERT INTO {schema.name}.{table.name} ({",".join(columns)})
+                SELECT {",".join(columns)} FROM {schema.name}.stage_{table.name}
+                WHERE entry >= {i*limit} and entry < {(i+1)*limit}
+                ON DUPLICATE KEY UPDATE {",".join(pairs)}
+            """
+            execute_sql(cursor, sql)
+            table_task.set_progress(i)
+            tracker.update()
+        table_task.set_progress(total_rows//limit+2)
         cursor.commit()
         schema.advance_table_state(table)
         connection_pool.free_connection(connection)

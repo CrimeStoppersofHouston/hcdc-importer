@@ -58,6 +58,11 @@ class Table:
         self.status = TableStatus.PENDING
 
 
+    def reset_state(self) -> None:
+        '''Resets the table's status to PENDING'''
+        self.status = TableStatus.PENDING
+
+
     def add_column(self, column: Column) -> Self:
         '''Adds a column to the columns dict'''
         self.columns.add(column)
@@ -117,6 +122,8 @@ class Schema:
 
     def reset_schema(self):
         '''Resets the schema to the default state'''
+        for table in self.tables:
+            table.reset_state()
         self.completed_tables = set()
         self.processing_tables = set()
         self.pending_tables = self.tables.copy()
@@ -158,6 +165,9 @@ class Schema:
             Returns a table which is has all prereq fulfilled and is ready for processing. 
             Returns None if no tables are available
         '''
+        logging.debug('Processing tables %s', {x.name for x in self.processing_tables})
+        logging.debug('Pending tables %s', {x.name for x in self.pending_tables})
+        logging.debug('Tables %s', {x.name for x in self.tables})
         if not self.pending_tables:
             logging.debug("There are no pending tables")
             return None

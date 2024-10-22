@@ -24,7 +24,7 @@ def load_dataframe_csv(filepath, delimiter:str = ',', encoding_type='utf-8') -> 
             df = df.replace(np.nan, None)
             return df
     except Exception as e:
-        raise AttributeError('Cannot read CSV file: {e}') from e
+        raise AttributeError(f'Cannot read CSV file: {e}') from e
 
 def load_dataframe_excel(filepath, encoding_type='utf-8') -> pd.DataFrame:
     '''Returns a Dataframe loaded from the given excel filepath'''

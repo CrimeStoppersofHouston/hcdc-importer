@@ -8,6 +8,7 @@
 
 import math
 from threading import Lock
+import time
 
 ### Class Declarations ###
 
@@ -34,13 +35,15 @@ class ProgressTracker:
             name: str,
             progress_length: int= 20,
             bounding_symbol: str= '-',
-            progress_symbol: str= '='
+            progress_symbol: str= '=',
+            max_displayed_tasks: int = 7
         ):
         self.tasks = []
         self.name = name
         self.progress_length = progress_length
         self.bounding_symbol = bounding_symbol
         self.progress_symbol = progress_symbol
+        self.max_displayed_tasks = max_displayed_tasks
         self.previous_height = 0
         self.previous_length = 0
         self.update_lock = Lock()
@@ -93,8 +96,12 @@ class ProgressTracker:
             max_length = 0
             overall_current_progress = 0
             overall_total_progress = 0
-
-            for task in self.tasks:
+            if len(self.tasks) > self.max_displayed_tasks:
+                item_bars.append(
+                    f'{self.bounding_symbol} '
+                    f'({len(self.tasks)-self.max_displayed_tasks}) additional tasks...'
+                )
+            for task in self.tasks[-self.max_displayed_tasks:]:
                 progress = task.current_progress/task.total_progress
                 progress_bar_length = math.floor(progress*self.progress_length)
                 row = (
