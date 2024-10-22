@@ -7,7 +7,6 @@ import os
 from dotenv import load_dotenv
 
 from utility.connection.connection_pool import ConnectionPool
-from automation.schema_creation import create_hcdc_snapshot
 
 class TestConnection(unittest.TestCase):
     '''Tests functionality of the ConnectionPool object'''
