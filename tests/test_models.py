@@ -4,6 +4,7 @@
 
 import unittest
 import numpy as np
+import copy
 
 from model.database.database_model import Schema, Table, Column
 from utility.conversion_functions import (
@@ -105,6 +106,13 @@ class TestModels(unittest.TestCase):
         schema.add_table(table1)
         schema.add_table(table2)
 
+        schema_copy = Schema("Sample Schema")
+        table1_copy = Table("Sample Table 1")
+        table2_copy = Table("Sample Table 2")
+
+        schema_copy.add_table(table1_copy)
+        schema_copy.add_table(table2_copy)
+
         handled1 = schema.get_available_table()
         handled2 = schema.get_available_table()
 
@@ -114,6 +122,20 @@ class TestModels(unittest.TestCase):
         schema.reset_schema()
 
         self.assertSetEqual(schema.tables, schema.pending_tables)
+        self.assertSetEqual(
+            {x.name for x in schema.tables}, {x.name for x in schema_copy.tables}
+        )
+        self.assertSetEqual(
+            {x.name for x in schema.pending_tables}, {x.name for x in schema_copy.pending_tables}
+        )
+        self.assertSetEqual(
+            {x.name for x in schema.processing_tables},
+            {x.name for x in schema_copy.processing_tables}
+        )
+        self.assertSetEqual(
+            {x.name for x in schema.completed_tables},
+            {x.name for x in schema_copy.completed_tables}
+        )
 
     def test_search_table(self):
         '''Tests searching for a table given a name'''

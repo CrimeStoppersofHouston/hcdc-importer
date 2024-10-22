@@ -116,5 +116,6 @@ cases.add_prereq(database.get_table_by_name('offense'))
 cases.add_prereq(database.get_table_by_name('attorney'))
 cases.add_prereq(database.get_table_by_name('defendant'))
 cases.add_prereq(database.get_table_by_name('event'))
+cases.add_prereq(database.get_table_by_name('report'))
 
 database.add_table(cases)

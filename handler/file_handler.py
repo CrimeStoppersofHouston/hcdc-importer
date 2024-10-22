@@ -24,7 +24,7 @@ from config.states import FileStateHolder, FileStates
 from handler.state_handler import change_file_state
 from model.database import hcdc_snapshot
 from utility.connection.connection_pool import ConnectionPool
-from utility.connection.cursor_actions import insert_to_stage_table
+from utility.connection.cursor_actions import insert_to_stage_table, insert_to_final_table
 from utility.file.load import load_dataframe_csv, load_dataframe_excel
 from utility.progress_tracking import ProgressTracker, Task
 
@@ -132,7 +132,8 @@ def handle_file(filepaths):
                             table is None or
                             connection_pool.all_connections_blocked()
                         ):
-                            threads.pop().join()
+                            if len(threads) > 0:
+                                threads.pop().join()
                             continue
 
                         if (
@@ -142,25 +143,34 @@ def handle_file(filepaths):
                             connection_pool.add_connection()
 
                         if len(connection_pool.available_connections) > 0:
-                            #tracker.log_info(f'Starting insertion of stage_{table.name}')
                             connection = connection_pool.get_available_connection()
                             t = threading.Thread(
                                 target=insert_to_stage_table,
                                 args=[connection_pool, connection, df, model, table, tracker]
                             )
-                            threads.append(t)
+                            threads.insert(0, t)
                             t.start()
 
                     connection_pool.clear()
                     tracker.clear()
                     logging.info("Finished inserting to stage tables")
                     tracker.update(True)
-                    exit()
+                    model.reset_schema()
 
                 case FileStates.MERGE:
+                    tracker.clear()
+                    logging.info("Merging to final tables, blocked conns")
+                    tracker.update(True)
+
+                    threads = []
                     while not model.is_completed():
                         table = model.get_available_table()
-                        if table is None:
+                        if (
+                            table is None or
+                            connection_pool.all_connections_blocked()
+                        ):
+                            if len(threads) > 0:
+                                threads.pop().join()
                             continue
 
                         if (
@@ -169,10 +179,18 @@ def handle_file(filepaths):
                         ):
                             connection_pool.add_connection()
 
-                        if connection_pool.available_connections > 0:
-                            pass
-                            # threading.run(merge(df, table, conneciton, connection_pool))
+                        if len(connection_pool.available_connections) > 0:
+                            connection = connection_pool.get_available_connection()
+                            t = threading.Thread(
+                                target = insert_to_final_table,
+                                args=[connection_pool, connection, model, table, tracker]
+                            )
+                            threads.insert(0, t)
+                            t.start()
 
                     connection_pool.clear()
+                    model.reset_schema()
+                    tracker.clear()
+                    logging.info("Finished merging into final tables")
 
             change_file_state(file_state)
