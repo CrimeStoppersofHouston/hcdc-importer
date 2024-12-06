@@ -27,7 +27,7 @@ def fetch_from_directory(
 ) -> list[str]:
     '''Gets a list of files in the given directory with optional recursion'''
     if depth_limit < 0:
-        raise ValueError("Depth limit for directory fetch must not be less than 0!")
+        raise ValueError('Depth limit for directory fetch must not be less than 0!')
 
     file_list = []
     if not os.path.exists(directory_path):
@@ -130,18 +130,18 @@ def code_check(code: int):
     '''Returns a status code based on the files found'''
     match code:
         case 0:
-            logging.info("No HCDC files found")
+            logging.info('No HCDC files found')
         case 1:
-            logging.info("MISSING FILES: Monthly Filings, Historical Files")
+            logging.info('MISSING FILES: Monthly Filings, Historical Files')
         case 2:
-            logging.info("MISSING FILES: Daily Filings, Historical Filings")
+            logging.info('MISSING FILES: Daily Filings, Historical Filings')
         case 3:
-            logging.info("MISSING FILES: Historical Files")
+            logging.info('MISSING FILES: Historical Files')
         case 4:
-            logging.info("MISSING FILES: Daily Filings, Monthly Filings")
+            logging.info('MISSING FILES: Daily Filings, Monthly Filings')
         case 5:
-            logging.info("MISSING FILES: Monthly Filings")
+            logging.info('MISSING FILES: Monthly Filings')
         case 6:
-            logging.info("MISSING FILES: Daily Filings")
+            logging.info('MISSING FILES: Daily Filings')
         case 7:
-            logging.info("All HCDC files found") 
+            logging.info('All HCDC files found') 

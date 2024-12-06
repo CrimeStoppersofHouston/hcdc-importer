@@ -1,7 +1,7 @@
-"""
+'''
 This module is meant to be used to create a new instance of the hcdc database.
 It includes a creation statement and a creation function for this purpose.
-"""
+'''
 
 ### External Imports ###
 
@@ -15,7 +15,7 @@ from utility.connection.connection_pool import ConnectionPool
 
 ### Variable Declarations ###
 
-CREATE_STMT = """
+CREATE_STMT = '''
 create table offense (
 	code varchar(4) primary key not null,
     literal varchar(100) not null
@@ -39,23 +39,23 @@ create table incident (
     primary key (incident_id),
     foreign key (offense_code) references offense(code)
 );
-"""
+'''
 
 def create(
     schema_name: str, connection: pyodbc.Connection, connection_pool: ConnectionPool
 ) -> None:
     '''Creates a new HCDC snapshot database with a predefined creation statement'''
     with contextlib.closing(connection.cursor()) as cursor:
-        cursor.execute(f"create database if not exists {schema_name}")
+        cursor.execute(f'create database if not exists {schema_name}')
         cursor.commit()
 
         old_database = connection_pool.database
         connection_pool.set_database(schema_name)
         new_connection = connection_pool.get_connection()
         new_cursor = new_connection.cursor()
-        new_cursor.execute(f"use {schema_name};")
+        new_cursor.execute(f'use {schema_name};')
         new_cursor.commit()
-        for statement in CREATE_STMT.split(";"):
+        for statement in CREATE_STMT.split(';'):
             new_cursor.execute(statement)
         new_cursor.commit()
         new_connection.close()

@@ -88,7 +88,7 @@ def insert_to_stage_table(
     tracker.add_task(table_task)
     columns = [column for column in table.columns]
     column_keys = [column.name for column in columns]
-    sql = f'INSERT INTO {schema.name}.stage_{table.name} ({",".join(column_keys)}) VALUES '
+    sql = f'INSERT INTO {schema.name}.stage_{table.name} ({','.join(column_keys)}) VALUES '
 
     with closing(connection.cursor()) as cursor:
         reset_stage_table(cursor, schema, table)
@@ -98,7 +98,7 @@ def insert_to_stage_table(
                 if len(rows) != 0:
                     execute_sql(
                         cursor,
-                        (f'{sql}{",".join(rows)} ON DUPLICATE KEY '
+                        (f'{sql}{','.join(rows)} ON DUPLICATE KEY '
                          f'UPDATE `{column_keys[0]}`=`{column_keys[0]}`;')
                     )
                     table_task.set_progress(index+1)
@@ -111,7 +111,7 @@ def insert_to_stage_table(
         if len(rows) != 0:
             execute_sql(
                 cursor,
-                (f'{sql}{",".join(rows)} ON DUPLICATE KEY '
+                (f'{sql}{','.join(rows)} ON DUPLICATE KEY '
                  f'UPDATE `{column_keys[0]}`=`{column_keys[0]}`;')
             )
             table_task.set_progress(total_rows)
@@ -143,12 +143,12 @@ def insert_to_final_table(
         ]
 
         for i in range(total_rows//limit+2):
-            sql = f"""
-                INSERT INTO {schema.name}.{table.name} ({",".join(columns)})
-                SELECT {",".join(columns)} FROM {schema.name}.stage_{table.name}
+            sql = f'''
+                INSERT INTO {schema.name}.{table.name} ({','.join(columns)})
+                SELECT {','.join(columns)} FROM {schema.name}.stage_{table.name}
                 WHERE entry >= {i*limit} and entry < {(i+1)*limit}
-                ON DUPLICATE KEY UPDATE {",".join(pairs)}
-            """
+                ON DUPLICATE KEY UPDATE {','.join(pairs)}
+            '''
             execute_sql(cursor, sql)
             table_task.set_progress(i)
             tracker.update()

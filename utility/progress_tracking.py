@@ -52,14 +52,14 @@ class ProgressTracker:
     def reset_to_top(self):
         '''Resets the cursor up lines equal to the previous height'''
         for i in range(self.previous_height):
-            print("\r\033[1A", end='\r')
+            print('\r\033[1A', end='\r')
 
     def clear(self):
         '''Clears the previous lines equal to the previous height'''
         with self.clear_lock:
             for i in range(self.previous_height):
-                print("\r\033[1A", end='\r')
-                print(" "*self.previous_length, end='\r')
+                print('\r\033[1A', end='\r')
+                print(' '*self.previous_length, end='\r')
 
     def add_task(self, task: Task) -> None:
         '''Adds a task'''

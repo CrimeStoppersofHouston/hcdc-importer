@@ -25,12 +25,12 @@ class TestStateHolders(unittest.TestCase):
         '''Tests that states cannot be used interchangeably'''
         try:
             self.fstate.set_state(ProgramStates.END)
-            self.assertEqual(1, 0, "File state exclusivity violated!")
+            self.assertEqual(1, 0, 'File state exclusivity violated!')
         except Exception as e:
             self.assertIsInstance(e, ValueError)
         
         try:
             self.pstate.set_state(FileStates.END)
-            self.assertEqual(1, 0, "Program state exclusivity violated!")
+            self.assertEqual(1, 0, 'Program state exclusivity violated!')
         except Exception as e:
             self.assertIsInstance(e, ValueError)

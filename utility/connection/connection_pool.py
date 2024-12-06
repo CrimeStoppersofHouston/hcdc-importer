@@ -1,8 +1,8 @@
-"""
+'''
     This module contains the class needed to create,
     maintain, and remove connections with the mysql server
     in order to allow for multi-threaded inserts.
-"""
+'''
 
 ### External Imports ###
 
@@ -42,7 +42,7 @@ class ConnectionPool:
         '''Sets the meximum number of connections that can be created'''
         if max_connections < len(self.pool):
             logging.warning(
-                "Cannot set max connections to %d, %d connections are currently active",
+                'Cannot set max connections to %d, %d connections are currently active',
                 max_connections,
                 len(self.pool),
             )
@@ -59,23 +59,23 @@ class ConnectionPool:
         for tries in range(max_retries):
             try:
                 connection = pyodbc.connect(
-                    f"Driver={self.driver};"
-                    f"Server={self.server};"
-                    f"Port={self.port}"
-                    f"Database={self.database};"
-                    f"Uid={self.username};"
-                    f"Pwd={self.password};"
-                    "Encrypt=yes;Connection Timeout=100;MULTI_HOST=1;",
+                    f'Driver={self.driver};'
+                    f'Server={self.server};'
+                    f'Port={self.port}'
+                    f'Database={self.database};'
+                    f'Uid={self.username};'
+                    f'Pwd={self.password};'
+                    'Encrypt=yes;Connection Timeout=100;MULTI_HOST=1;',
                     autocommit=False,
                 )
                 logging.debug(
-                    "Connection to %s established on try %d", self.database, tries + 1
+                    'Connection to %s established on try %d', self.database, tries + 1
                 )
                 return connection
             except Exception as e:
-                logging.debug("Error getting connection: %s", e)
+                logging.debug('Error getting connection: %s', e)
         if connection is None:
-            raise ConnectionError("Failed to establish connection to database")
+            raise ConnectionError('Failed to establish connection to database')
         return connection
 
     def set_database(self, database: str):
@@ -86,7 +86,7 @@ class ConnectionPool:
         '''Creates a new connection and adds it to the connection pool'''
         if len(self.pool) >= self.max_connections:
             logging.warning(
-                "Cannot add connection to pool, max connections has been reached!"
+                'Cannot add connection to pool, max connections has been reached!'
             )
             return None
         connection = self.get_connection()
@@ -97,12 +97,12 @@ class ConnectionPool:
         '''Removes the given connection from the pool'''
         if connection not in self.pool:
             logging.error(
-                "Connection failed to be removed from pool: not present in pool"
+                'Connection failed to be removed from pool: not present in pool'
             )
             raise ValueError
         if connection in self.blocked_connections:
             logging.error(
-                "Connection cannot be removed from pool: connection blocked for execution"
+                'Connection cannot be removed from pool: connection blocked for execution'
             )
             raise KeyError
         if connection not in self.available_connections:
@@ -114,12 +114,12 @@ class ConnectionPool:
         self.available_connections.remove(connection)
         self.pool.remove(connection)
         connection.close()
-        logging.debug("Connection successfully removed from pool")
+        logging.debug('Connection successfully removed from pool')
 
     def get_available_connection(self) -> pyodbc.Connection:
         '''Returns an available connection from the pool'''
         if len(self.available_connections) < 1:
-            logging.warning("There are no available connections!")
+            logging.warning('There are no available connections!')
             return None
         connection = self.available_connections.pop()
         self.blocked_connections.add(connection)
@@ -128,7 +128,7 @@ class ConnectionPool:
     def free_connection(self, connection: pyodbc.Connection) -> None:
         '''Removes the given connection from the set of blocked connections'''
         if connection not in self.blocked_connections:
-            logging.error("Connection cannot be freed: connection not in blocked set!")
+            logging.error('Connection cannot be freed: connection not in blocked set!')
             raise ValueError
         self.blocked_connections.remove(connection)
         self.available_connections.add(connection)

@@ -83,7 +83,7 @@ class Table:
             case TableStatus.INPROGRESS:
                 self.status = TableStatus.COMPLETED
             case TableStatus.COMPLETED:
-                logging.warning("Advancing table status when already completed!")
+                logging.warning('Advancing table status when already completed!')
 
 
     def get_conversion_dict(self) -> Dict[str, Callable]:
@@ -169,12 +169,12 @@ class Schema:
         logging.debug('Pending tables %s', {x.name for x in self.pending_tables})
         logging.debug('Tables %s', {x.name for x in self.tables})
         if not self.pending_tables:
-            logging.debug("There are no pending tables")
+            logging.debug('There are no pending tables')
             return None
         for table in self.pending_tables:
             if table.prereqs.issubset(self.completed_tables):
                 self.advance_table_state(table)
                 return table
             logging.debug('Cannot handle %s, not all prerequisites are completed', table.name)
-        logging.debug("There are no tables that can be handled")
+        logging.debug('There are no tables that can be handled')
         return None

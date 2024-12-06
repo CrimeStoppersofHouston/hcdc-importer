@@ -1,4 +1,4 @@
-"""
+'''
 # @ Author: Ryan Barnes
 # @ Create Time: 2024-05-30 12:17:51
 # @ Modified by: Ryan Barnes
@@ -8,7 +8,7 @@
        flow of the program. Additional responisibilities
        should be handed off to other files, such as insertion
        and sanitization.
-"""
+'''
 
 ### External Imports ###
 
@@ -22,7 +22,7 @@ from automation.schema_creation import create_hcdc_snapshot, create_hpd
 from config.flag_parser import FlagParser
 from config.states import FileStateHolder, FileStates
 from handler.state_handler import change_file_state
-from model.database import hcdc_snapshot
+from model.database import hcdc_snapshot, hpd_database
 from utility.connection.connection_pool import ConnectionPool
 from utility.connection.cursor_actions import insert_to_stage_table, insert_to_final_table
 from utility.file.load import load_dataframe_csv, load_dataframe_excel
@@ -32,31 +32,32 @@ from utility.progress_tracking import ProgressTracker, Task
 
 
 def handle_file(filepaths):
-    """Takes a filepath and imports it into the database"""
+    '''Takes a filepath and imports it into the database'''
     parser = FlagParser()
     connection_pool = ConnectionPool(
-        os.getenv("USERNAME"),
-        os.getenv("PASSWORD"),
-        os.getenv("SERVER"),
-        os.getenv("PORT"),
-        os.getenv("DATABASE"),
-        os.getenv("DRIVER"),
+        os.getenv('USERNAME'),
+        os.getenv('PASSWORD'),
+        os.getenv('SERVER'),
+        os.getenv('PORT'),
+        os.getenv('DEFAULT_DATABASE'),
+        os.getenv('DRIVER'),
     )
     if not parser.args.skipCreation:
         match parser.args.type:
-            case "hcdc":
+            case 'hcdc':
                 connection_pool.add_connection()
                 conn = connection_pool.get_available_connection()
-                create_hcdc_snapshot.create(os.getenv("DATABASE"), conn, connection_pool)
+                create_hcdc_snapshot.create(os.getenv('CREATE_DATABASE'), conn, connection_pool)
                 connection_pool.clear()
-            case "hpd":
+            case 'hpd':
                 connection_pool.add_connection()
                 conn = connection_pool.get_available_connection()
-                create_hpd.create(os.getenv("DATABASE"), conn, connection_pool)
+                create_hpd.create(os.getenv('CREATE_DATABASE'), conn, connection_pool)
                 connection_pool.clear()
             case _:
                 logging.error('Unimplemented type : %s', parser.args.type)
-                raise ValueError(f"Unimplemented type :{parser.args.type}")
+                raise ValueError(f'Unimplemented type :{parser.args.type}')
+        connection_pool.set_database(os.getenv('CREATE_DATABASE'))
 
     for i, current_filepath in enumerate(filepaths):
         file_state = FileStateHolder()
@@ -65,7 +66,7 @@ def handle_file(filepaths):
         model = None
         df = None
         logging.info(
-            "Handling file %d of %d: %s", i + 1, len(filepaths), current_filepath
+            'Handling file %d of %d: %s', i + 1, len(filepaths), current_filepath
         )
         while file_state.get_state() != FileStates.END:
             match file_state.get_state():
@@ -73,7 +74,7 @@ def handle_file(filepaths):
                     pass
 
                 case FileStates.LOADING:
-                    logging.info("Loading file...")
+                    logging.info('Loading file...')
                     tracker = ProgressTracker(
                         f'File {i+1}: {os.path.basename(current_filepath)[:40]}...'
                     )
@@ -82,33 +83,33 @@ def handle_file(filepaths):
                     tracker.update()
 
                     match os.path.splitext(current_filepath)[1]:
-                        case ".xlsx":
+                        case '.xlsx':
                             df = load_dataframe_excel(current_filepath)
-                        case ".csv":
+                        case '.csv':
                             df = load_dataframe_csv(
                                 current_filepath, parser.args.delimiter, parser.args.encoding
                             )
-                        case ".txt":
+                        case '.txt':
                             df = load_dataframe_csv(
                                 current_filepath, parser.args.delimiter, parser.args.encoding
                             )
                         case _:
                             logging.error(
-                                "Unsupported file extension: %s", 
+                                'Unsupported file extension: %s', 
                                 os.path.splitext(current_filepath)[1]
                             )
                             file_state.set_state(FileStates.END)
                     tracker.clear()
-                    logging.info("%s loaded successfully!", current_filepath)
+                    logging.info('%s loaded successfully!', current_filepath)
                     loading_task.add_progress(1)
                     tracker.update(True)
 
                 case FileStates.SANITIZATION:
                     tracker.clear()
-                    logging.info("Sanitizing columns for insertion...")
+                    logging.info('Sanitizing columns for insertion...')
                     tracker.update(True)
                     match parser.args.type:
-                        case "hcdc":
+                        case 'hcdc':
                             conversion_dict = hcdc_snapshot.database.get_conversion_dict()
                             sanitization_task = Task('Converting columns', len(conversion_dict))
                             tracker.add_task(sanitization_task)
@@ -117,18 +118,27 @@ def handle_file(filepaths):
                                 sanitization_task.add_progress(1)
                                 tracker.update()
                             model = hcdc_snapshot.database
-                            model.name = os.getenv("DATABASE")
+                        case 'hpd':
+                            conversion_dict = hpd_database.database.get_conversion_dict()
+                            sanitization_task = Task('Converting columns', len(conversion_dict))
+                            tracker.add_task(sanitization_task)
+                            for column, conversion_func in conversion_dict.items():
+                                df[column] = df[column].apply(conversion_func)
+                                sanitization_task.add_progress(1)
+                                tracker.update()
+                            model = hpd_database.database
                         case _:
                             raise ValueError(
-                                f"Unimplemented format: {parser.args.type}"
+                                f'Unimplemented format: {parser.args.type}'
                             )
+                    model.name = connection_pool.database
                     tracker.clear()
-                    logging.info("All columns sanitized!")
+                    logging.info('All columns sanitized!')
                     tracker.update(True)
 
                 case FileStates.STAGING:
                     tracker.clear()
-                    logging.info("Inserting to stage tables")
+                    logging.info('Inserting to stage tables')
                     tracker.update(True)
                     threads = []
                     while not model.is_completed():
@@ -158,13 +168,13 @@ def handle_file(filepaths):
 
                     connection_pool.clear()
                     tracker.clear()
-                    logging.info("Finished inserting to stage tables")
+                    logging.info('Finished inserting to stage tables')
                     tracker.update(True)
                     model.reset_schema()
 
                 case FileStates.MERGE:
                     tracker.clear()
-                    logging.info("Merging to final tables, blocked conns")
+                    logging.info('Merging to final tables, blocked conns')
                     tracker.update(True)
 
                     threads = []
@@ -196,6 +206,6 @@ def handle_file(filepaths):
                     connection_pool.clear()
                     model.reset_schema()
                     tracker.clear()
-                    logging.info("Finished merging into final tables")
+                    logging.info('Finished merging into final tables')
 
             change_file_state(file_state)

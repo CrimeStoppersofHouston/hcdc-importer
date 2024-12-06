@@ -1,7 +1,7 @@
-"""
+'''
    Links execution functions to their respective execution stages. This design
    should allow for easy customization of program behavior.
-"""
+'''
 
 ### External Imports ###
 
@@ -23,7 +23,7 @@ from utility.file.fetch import fetch_from_directory, hcdc_file_validation
 
 
 def execute_program():
-    """Starts the program execution process. Should be called from the main thread."""
+    '''Starts the program execution process. Should be called from the main thread.'''
     filepaths = []
     parser = FlagParser()
     program_state = ProgramStateHolder()
@@ -34,19 +34,19 @@ def execute_program():
                     logging.root.removeHandler(handler)
                 logging.basicConfig(
                     level=logging.INFO if not parser.args.debug else logging.DEBUG,
-                    format="%(asctime)s\t[%(levelname)s]\t%(message)s",
+                    format='%(asctime)s\t[%(levelname)s]\t%(message)s',
                     handlers=[
                         logging.FileHandler(
-                            f"./logs/{datetime.now().strftime('debug_%Y%m%d_%H%M')}.log"
+                            f'./logs/{datetime.now().strftime('debug_%Y%m%d_%H%M')}.log'
                         ),
                         logging.StreamHandler(sys.stdout),
                     ],
                 )
-                logging.debug("Entering debug mode...")
-                logging.info("Initialization complete!")
+                logging.debug('Entering debug mode...')
+                logging.info('Initialization complete!')
 
             case ProgramStates.FILE_FETCH:
-                logging.info("Fetching filepaths...")
+                logging.info('Fetching filepaths...')
                 if parser.args.directory:
                     try:
                         filepaths = fetch_from_directory(
@@ -56,12 +56,13 @@ def execute_program():
                             parser.args.depth,
                         )
                     except ValueError as e:
-                        logging.error("Invalid argument supplied: %s", e)
+                        logging.error('Invalid argument supplied: %s', e)
                 elif parser.args.file:
                     if os.path.exists(parser.args.file):
                         filepaths.append(parser.args.file)
                     else:
-                        logging.error("Invalid filepath supplied: %s", parser.args.file)
+                        logging.error('Invalid filepath supplied: %s', parser.args.file)
+                ''' DEPRECATED: WILL REMOVE IN A FUTURE PUSH
                 elif parser.args.hcdc:
                     try:
                         if parser.args.collect:
@@ -77,18 +78,19 @@ def execute_program():
                             parser.args.hcdc
                         )
                     except ValueError as e:
-                        logging.error("Invalid argument supplied: %s", e)
+                        logging.error('Invalid argument supplied: %s', e)
                 elif parser.args.hpd:
                     try:
                         pass #Need to implement scraper function for HPD at https://www.houstontx.gov/police/cs/Monthly_Crime_Data_by_Street_and_Police_Beat.htm
                     except ValueError as e:
-                        logging.error("Invalid argument supplied: %s", e)
+                        logging.error('Invalid argument supplied: %s', e)
+                '''
                 if len(filepaths) == 0:
-                    logging.error("No files were found!")
+                    logging.error('No files were found!')
                     sys.exit(1)
 
-                logging.debug("%d files were found: %s", len(filepaths), filepaths)
-                logging.info("%d files fetched", len(filepaths))
+                logging.debug('%d files were found: %s', len(filepaths), filepaths)
+                logging.info('%d files fetched', len(filepaths))
 
             case ProgramStates.FILE_PROCESSING:
                 handle_file(filepaths)

@@ -1,7 +1,7 @@
-"""
+'''
 This module is meant to be used to create a new instance of the hcdc database.
 It includes a creation statement and a creation function for this purpose.
-"""
+'''
 
 ### External Imports ###
 
@@ -15,7 +15,7 @@ from utility.connection.connection_pool import ConnectionPool
 
 ### Variable Declarations ###
 
-CREATE_STMT = """
+CREATE_STMT = '''
 CREATE TABLE IF NOT EXISTS `attorney` (
     `spn` varchar(8) NOT NULL,
     `name` varchar(255) NOT NULL,
@@ -253,7 +253,7 @@ insert into defendant_status select * from HCDCMigration.defendant_status;
 insert into instrument select * from HCDCMigration.instrument;
 insert into level_and_degree select * from HCDCMigration.level_and_degree;
 insert into setting_reason select * from HCDCMigration.setting_reason;
-"""
+'''
 
 ### Function Declarations ###
 
@@ -263,16 +263,16 @@ def create(
 ) -> None:
     '''Creates a new HCDC snapshot database with a predefined creation statement'''
     with contextlib.closing(connection.cursor()) as cursor:
-        cursor.execute(f"create database if not exists {schema_name}")
+        cursor.execute(f'create database if not exists {schema_name}')
         cursor.commit()
 
         old_database = connection_pool.database
         connection_pool.set_database(schema_name)
         new_connection = connection_pool.get_connection()
         new_cursor = new_connection.cursor()
-        new_cursor.execute(f"use {schema_name};")
+        new_cursor.execute(f'use {schema_name};')
         new_cursor.commit()
-        for statement in CREATE_STMT.split(";"):
+        for statement in CREATE_STMT.split(';'):
             new_cursor.execute(statement)
         new_cursor.commit()
         new_connection.close()
