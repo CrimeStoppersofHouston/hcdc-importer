@@ -1,0 +1,5 @@
+# This file is to be used with pylint to ignore warnings given by pyodbc
+# This is to avoid errors with type hinting due to pyodbc being written
+# mostly in C++, making it difficult for pylint to detect its members
+
+extension-pkg-whitelist=pyodbc

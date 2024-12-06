@@ -18,7 +18,7 @@ import threading
 
 ### Internal Imports ###
 
-from automation.schema_creation import create_hcdc_snapshot
+from automation.schema_creation import create_hcdc_snapshot, create_hpd
 from config.flag_parser import FlagParser
 from config.states import FileStateHolder, FileStates
 from handler.state_handler import change_file_state
@@ -48,6 +48,11 @@ def handle_file(filepaths):
                 connection_pool.add_connection()
                 conn = connection_pool.get_available_connection()
                 create_hcdc_snapshot.create(os.getenv("DATABASE"), conn, connection_pool)
+                connection_pool.clear()
+            case "hpd":
+                connection_pool.add_connection()
+                conn = connection_pool.get_available_connection()
+                create_hpd.create(os.getenv("DATABASE"), conn, connection_pool)
                 connection_pool.clear()
             case _:
                 logging.error('Unimplemented type : %s', parser.args.type)

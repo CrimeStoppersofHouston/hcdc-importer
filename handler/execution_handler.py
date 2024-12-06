@@ -78,6 +78,11 @@ def execute_program():
                         )
                     except ValueError as e:
                         logging.error("Invalid argument supplied: %s", e)
+                elif parser.args.hpd:
+                    try:
+                        pass #Need to implement scraper function for HPD at https://www.houstontx.gov/police/cs/Monthly_Crime_Data_by_Street_and_Police_Beat.htm
+                    except ValueError as e:
+                        logging.error("Invalid argument supplied: %s", e)
                 if len(filepaths) == 0:
                     logging.error("No files were found!")
                     sys.exit(1)
