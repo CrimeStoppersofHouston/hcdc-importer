@@ -12,12 +12,11 @@ from datetime import datetime
 
 ### Internal Imports ###
 
-from automation.hcdc_datasets_gathering import download_hcdc
 from config.flag_parser import FlagParser
 from config.states import ProgramStateHolder, ProgramStates
 from handler.file_handler import handle_file
 from handler.state_handler import change_program_state
-from utility.file.fetch import fetch_from_directory, hcdc_file_validation
+from utility.file.fetch import fetch_from_directory
 
 ### Function Declarations ###
 
@@ -62,29 +61,6 @@ def execute_program():
                         filepaths.append(parser.args.file)
                     else:
                         logging.error('Invalid filepath supplied: %s', parser.args.file)
-                ''' DEPRECATED: WILL REMOVE IN A FUTURE PUSH
-                elif parser.args.hcdc:
-                    try:
-                        if parser.args.collect:
-                            download_hcdc(
-                                './data',
-                                filings_daily=False,
-                                dispos_daily=False,
-                                filings_monthly=False,
-                                dispos_monthly=False,
-                                historical=True
-                            )
-                        filepaths = hcdc_file_validation(
-                            parser.args.hcdc
-                        )
-                    except ValueError as e:
-                        logging.error('Invalid argument supplied: %s', e)
-                elif parser.args.hpd:
-                    try:
-                        pass #Need to implement scraper function for HPD at https://www.houstontx.gov/police/cs/Monthly_Crime_Data_by_Street_and_Police_Beat.htm
-                    except ValueError as e:
-                        logging.error('Invalid argument supplied: %s', e)
-                '''
                 if len(filepaths) == 0:
                     logging.error('No files were found!')
                     sys.exit(1)

@@ -46,18 +46,6 @@ class FlagParser(argparse.ArgumentParser):
             help='The directory to load data from (Will not search folders recursively)',
         )
 
-        file_group.add_argument(
-            '-hcdc', type=str, help='The directory to verify HCDC download files'
-        )
-
-        self.add_argument(
-            '-c',
-            '--collect',
-            action='store_true',
-            default=False,
-            help='The extension to download HCDC datasets',
-        )
-
         self.add_argument(
             '-e',
             '--extension',
