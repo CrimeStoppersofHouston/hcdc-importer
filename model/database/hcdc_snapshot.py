@@ -13,7 +13,7 @@ from model.database.database_model import Table, Column, Schema
 ### Execution ###
 
 database = Schema(
-    'default'
+    'default', True
 ).add_table(
     Table(
         'offense'

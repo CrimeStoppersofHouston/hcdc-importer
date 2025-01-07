@@ -24,7 +24,7 @@ from config.states import FileStateHolder, FileStates
 from handler.state_handler import change_file_state
 from model.database import hcdc_snapshot, hpd_database
 from utility.connection.connection_pool import ConnectionPool
-from utility.connection.cursor_actions import insert_to_stage_table, insert_to_final_table
+from utility.connection.cursor_actions import insert_to_table, insert_from_stage_table, reset_stage_table
 from utility.file.load import load_dataframe_csv, load_dataframe_excel
 from utility.progress_tracking import ProgressTracker, Task
 
@@ -137,44 +137,45 @@ def handle_file(filepaths):
                     tracker.update(True)
 
                 case FileStates.STAGING:
-                    tracker.clear()
-                    logging.info('Inserting to stage tables')
-                    tracker.update(True)
-                    threads = []
-                    while not model.is_completed():
-                        table = model.get_available_table()
-                        if (
-                            table is None or
-                            connection_pool.all_connections_blocked()
-                        ):
-                            if len(threads) > 0:
-                                threads.pop().join()
-                            continue
+                    if model.staging_required:
+                        tracker.clear()
+                        logging.info('Inserting to stage tables')
+                        tracker.update(True)
+                        threads = []
+                        while not model.is_completed():
+                            table = model.get_available_table()
+                            if (
+                                table is None or
+                                connection_pool.all_connections_blocked()
+                            ):
+                                if len(threads) > 0:
+                                    threads.pop().join()
+                                continue
 
-                        if (
-                            len(connection_pool.available_connections) == 0
-                            and len(connection_pool.pool) < connection_pool.max_connections
-                        ):
-                            connection_pool.add_connection()
+                            if (
+                                len(connection_pool.available_connections) == 0
+                                and len(connection_pool.pool) < connection_pool.max_connections
+                            ):
+                                connection_pool.add_connection()
 
-                        if len(connection_pool.available_connections) > 0:
-                            connection = connection_pool.get_available_connection()
-                            t = threading.Thread(
-                                target=insert_to_stage_table,
-                                args=[connection_pool, connection, df, model, table, tracker]
-                            )
-                            threads.insert(0, t)
-                            t.start()
+                            if len(connection_pool.available_connections) > 0:
+                                connection = connection_pool.get_available_connection()
+                                t = threading.Thread(
+                                    target=insert_to_table,
+                                    args=[connection_pool, connection, df, model, table, tracker]
+                                )
+                                threads.insert(0, t)
+                                t.start()
 
-                    connection_pool.clear()
-                    tracker.clear()
-                    logging.info('Finished inserting to stage tables')
-                    tracker.update(True)
-                    model.reset_schema()
+                        connection_pool.clear()
+                        tracker.clear()
+                        logging.info('Finished inserting to stage tables')
+                        tracker.update(True)
+                        model.reset_schema()
 
                 case FileStates.MERGE:
                     tracker.clear()
-                    logging.info('Merging to final tables, blocked conns')
+                    logging.info('Inserting to final tables, blocked conns')
                     tracker.update(True)
 
                     threads = []

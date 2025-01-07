@@ -96,8 +96,9 @@ class Table:
 
 class Schema:
     '''Contains table objects and maintains information about their progress'''
-    def __init__(self, name: str):
+    def __init__(self, name: str, staging_required: bool = False):
         self.name = name
+        self.staging_required = staging_required
         self.completed_tables = set()
         self.processing_tables = set()
         self.pending_tables = set()

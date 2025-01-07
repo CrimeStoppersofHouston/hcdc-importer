@@ -21,16 +21,25 @@ class ProgramStates(State):
     FILE_FETCH = 101
     FILE_PROCESSING = 102
     REPORTING = 103
-    END = 110
+    END = 199
 
 class FileStates(State):
     '''Enumerator class that holds all file states'''
     INITIALIZATION = 200
     LOADING = 201
     SANITIZATION = 202
-    STAGING = 203
-    MERGE = 204
-    END = 210
+    STAGING = 203 # TO BE HANDLED IN INSERTION HANDLER
+    MERGE = 204 # TO BE HANDLED IN INSERTION HANDLER
+    UPLOAD = 205
+    END = 299
+
+class InsertionStates(State):
+    '''Enumerator class that holds all insertion states'''
+    INITIALIZATION = 300
+    STAGING = 301
+    INSERTION = 302
+    MERGING = 303
+    END = 399
 
 class StateHolder():
     '''Class that holds an enumerated state'''
