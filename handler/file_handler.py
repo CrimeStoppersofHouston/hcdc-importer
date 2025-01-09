@@ -173,7 +173,7 @@ def handle_file(filepaths):
                         tracker.update(True)
                         model.reset_schema()
 
-                case FileStates.MERGE:
+                case FileStates.INSERT:
                     tracker.clear()
                     logging.info('Inserting to final tables, blocked conns')
                     tracker.update(True)

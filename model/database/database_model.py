@@ -96,14 +96,20 @@ class Table:
 
 class Schema:
     '''Contains table objects and maintains information about their progress'''
-    def __init__(self, name: str, staging_required: bool = False):
+    def __init__(self, name: str, staging_required: bool = False, creation_function: Callable = None):
         self.name = name
         self.staging_required = staging_required
         self.completed_tables = set()
         self.processing_tables = set()
         self.pending_tables = set()
         self.tables = set()
+        self.creation_function = creation_function
 
+
+    def create(self, connection, connection_pool):
+        if self.creation_function is None:
+            logging.warning('Creation function is not defined for %s', self.name)
+        self.creation_function(self.name, connection, connection_pool)
 
     def get_conversion_dict(self) -> Dict[str, Callable]:
         '''Returns a merged dictionary of conversion functions of all columns in the schema'''
