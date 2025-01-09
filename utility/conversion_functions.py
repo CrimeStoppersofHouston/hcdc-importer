@@ -34,7 +34,7 @@ def convert_to_integer(value, none_value = None) -> int:
     return int(float(value))
 
 
-def convert_to_datetime(value, none_value = None, date_format:str = '%Y%m%d') -> datetime:
+def convert_to_datetime(value, none_value = None) -> datetime:
     '''
         Converts a value to a datetime object. If blank or none, returns provided none_value.
         Default date_format is YYYYMMDD.
@@ -43,7 +43,14 @@ def convert_to_datetime(value, none_value = None, date_format:str = '%Y%m%d') ->
         return none_value
     # Trim whitespace in order to avoid conversion errors
     value = str(value).strip()
-    return datetime.strptime(value, date_format)
+    formats = ['%Y%m%d', '%Y-%m-%d %H:%M:%S']
+    for date_format in formats:
+        try:
+            return datetime.strptime(value, date_format)
+        except:
+            continue
+    logging.error('Cannot convert value %s to datetime!', value)
+    raise ValueError(f'Cannot convert value {value} to datetime!')
 
 
 def convert_to_float(value, none_value = None):
@@ -71,7 +78,7 @@ def convert_to_sql(items: Iterable) -> str:
             case int():
                 ret += f'{int(item)},'
             case float():
-                ret += f'{int(item)},'
+                ret += f'{float(item)},'
             case datetime():
                 ret += f"'{datetime.strftime(item, '%Y-%m-%d')}',"
             case None:

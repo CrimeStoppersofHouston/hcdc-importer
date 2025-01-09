@@ -17,7 +17,7 @@ class TestConnection(unittest.TestCase):
             os.getenv('PASSWORD'),
             os.getenv('SERVER'),
             os.getenv('PORT'),
-            os.getenv('DATABASE'),
+            os.getenv('DEFAULT_DATABASE'),
             os.getenv('DRIVER')
         )
 

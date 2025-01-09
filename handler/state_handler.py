@@ -6,7 +6,12 @@
 
 ### Internal Imports ###
 
-from config.states import FileStates, ProgramStates, FileStateHolder, ProgramStateHolder
+from config.states import (
+    FileStates, FileStateHolder, 
+    ProgramStates, ProgramStateHolder,
+    InsertionStates, InsertionStateHolder
+)
+from model.database.database_model import Schema
 
 ### Function Declarations ###
 
@@ -37,10 +42,25 @@ def change_file_state(fstate: FileStateHolder):
             fstate.set_state(FileStates.SANITIZATION)
 
         case FileStates.SANITIZATION:
-            fstate.set_state(FileStates.STAGING)
+            fstate.set_state(FileStates.INSERT)
 
-        case FileStates.STAGING:
-            fstate.set_state(FileStates.MERGE)
-
-        case FileStates.MERGE:
+        case FileStates.INSERT:
             fstate.set_state(FileStates.END)
+
+def change_insertion_state(istate: InsertionStateHolder, model: Schema):
+    '''Progresses the insertion state of the given InsertionStateHolder'''
+    match istate.get_state():
+        case InsertionStates.INITIALIZATION:
+            if model.staging_required:
+                istate.set_state(InsertionStates.STAGING)
+            else:
+                istate.set_state(InsertionStates.INSERTION)
+
+        case InsertionStates.STAGING:
+            istate.set_state(InsertionStates.MERGING)
+
+        case InsertionStates.MERGING:
+            istate.set_state(InsertionStates.END)
+
+        case InsertionStates.INSERTION:
+            istate.set_state(InsertionStates.END)

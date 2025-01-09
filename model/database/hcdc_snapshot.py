@@ -9,11 +9,12 @@ from numpy import datetime64
 ### Internal Imports ###
 
 from model.database.database_model import Table, Column, Schema
+from automation.schema_creation import create_hcdc_snapshot
 
 ### Execution ###
 
 database = Schema(
-    'default', True
+    'default', True, create_hcdc_snapshot.create
 ).add_table(
     Table(
         'offense'

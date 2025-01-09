@@ -8,30 +8,31 @@
 ### External Imports ###
 
 import logging
-import pyodbc
 
 ### Internal Imports ###
 
-from model.database.database_model import DatabaseModel
 from model.database import hcdc_snapshot, hpd_database
+from config.flag_parser import FlagParser
 from utility.connection.connection_pool import ConnectionPool
 
 ### Class Declarations ###
 
 class ImportType():
-    def __init__(self, name:str, flag:str, model:DatabaseModel, stage_required=False):
-        self.name = name
-        self.flag = flag
-        self.model = model
+    '''Singleton Class that contains global data related to import types'''
+    # Singleton instance to avoid creating multiple instances
+    def __new__(self):
+        if not hasattr(self, 'instance'):
+            self.instance = super(ImportType, self).__new__(self)
+        return self.instance
 
-hcdc_import_type = ImportType(
-    'Harris County District Clerk Snapshot',
-    'hcdc',
-    hcdc_snapshot
-)
-
-hpd_import_type = ImportType(
-    'Houston Police Department Beats',
-    'hpd',
-    hpd_database
-)
+    def __init__(self):
+        parser = FlagParser()
+        match parser.args.type:
+            case 'hcdc':
+                self.name = 'Harris County District Clerk Snapshot'
+                self.model = hcdc_snapshot.database
+            case 'hpd':
+                self.name = 'Houston Police Department Beats'
+                self.model = hpd_database.database
+            case _:
+                logging.error('Undefined import type %s!', parser.args.type)

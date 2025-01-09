@@ -16,12 +16,12 @@ from utility.connection.connection_pool import ConnectionPool
 ### Variable Declarations ###
 
 CREATE_STMT = '''
-create table offense (
+create table if not exists offense (
 	code varchar(4) primary key not null,
     literal varchar(100) not null
 );
 
-create table incident (
+create table if not exists incident (
 	incident_id bigint not null,
     incident_date date not null,
     offense_code varchar(4) not null,
@@ -34,8 +34,8 @@ create table incident (
     suffix varchar(1) null,
     city varchar(50) null,
     zip_code varchar(20) null,
-    map_longitude float,
-    map_latitude float,
+    map_longitude double(10,6),
+    map_latitude double(10,6),
     primary key (incident_id),
     foreign key (offense_code) references offense(code)
 );
@@ -56,6 +56,8 @@ def create(
         new_cursor.execute(f'use {schema_name};')
         new_cursor.commit()
         for statement in CREATE_STMT.split(';'):
+            if statement.strip() == '':
+                continue
             new_cursor.execute(statement)
         new_cursor.commit()
         new_connection.close()

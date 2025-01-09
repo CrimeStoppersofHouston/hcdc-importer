@@ -20,7 +20,7 @@ from config.flag_parser import FlagParser
 
 def fetch_from_directory(
     directory_path: str,
-    extension: str,
+    extensions: str,
     recursive: bool = False,
     depth_limit: int = 3,
     depth: int = 0
@@ -44,7 +44,9 @@ def fetch_from_directory(
 
     # Fetching file paths
     for f in os.listdir(directory_path):
-        if f.endswith(extension):
-            file_list.append(f'{directory_path}\\{f}')
+        for extension in extensions:
+            if f.endswith(extension):
+                file_list.append(f'{directory_path}\\{f}')
+                break
 
     return file_list

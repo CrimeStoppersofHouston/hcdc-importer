@@ -50,7 +50,7 @@ def execute_program():
                     try:
                         filepaths = fetch_from_directory(
                             parser.args.directory,
-                            parser.args.extension,
+                            parser.args.extensions,
                             parser.args.recursive,
                             parser.args.depth,
                         )
@@ -74,5 +74,9 @@ def execute_program():
 
             case ProgramStates.REPORTING:
                 pass
+
+            case _:
+                logging.error('Program state %s unaccounted for! Exiting...', program_state.get_state())
+                exit(1)
 
         change_program_state(program_state)

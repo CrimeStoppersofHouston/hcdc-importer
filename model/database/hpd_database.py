@@ -9,9 +9,10 @@ from numpy import datetime64
 ### Internal Imports ###
 
 from model.database.database_model import Table, Column, Schema
+from automation.schema_creation import create_hpd
 
 database = Schema(
-    'default'
+    'default', False, create_hpd.create
 ).add_table(
     Table('offense').add_column(
         Column('NIBRSClass', 'code', str)
@@ -47,7 +48,7 @@ incidents = Table('incident').add_column(
 ).add_column(
     Column('MapLongitude','map_longitude', float)
 ).add_column(
-    Column('MapLatitude','latitude', float)
+    Column('MapLatitude','map_latitude', float)
 )
 
 incidents.add_prereq(database.get_table_by_name('offense'))

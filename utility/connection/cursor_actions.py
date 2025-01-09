@@ -31,6 +31,7 @@ def execute_sql(cursor: pyodbc.Cursor, sql: str, max_retries: int = 5, attempt: 
     else:
         try:
             cursor.execute(sql)
+            cursor.commit()
         except Exception:
             execute_sql(cursor, sql, max_retries, attempt+1)
 
@@ -119,7 +120,7 @@ def insert_to_stage_table(
         schema.advance_table_state(table)
         connection_pool.free_connection(connection)
 
-def insert_from_stage_table(
+def merge_from_stage_table(
     connection_pool: ConnectionPool,
     connection: pyodbc.Connection,
     schema: Schema,
@@ -173,7 +174,7 @@ def insert_to_table(
         the end of execution.
     '''
     total_rows = len(df)
-    table_task = Task(f'stage_{table.name}', total_rows)
+    table_task = Task(f'{table.name}', total_rows)
     tracker.add_task(table_task)
     columns = [column for column in table.columns]
     column_keys = [column.name for column in columns]

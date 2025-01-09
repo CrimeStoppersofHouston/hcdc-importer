@@ -11,9 +11,11 @@ from enum import Enum
 from typing import Self, Type, Dict, Callable
 
 import numpy as np
+import pyodbc
 
 ### Internal Imports ###
 from utility import conversion_functions
+from utility.connection.connection_pool import ConnectionPool
 
 ### Class Declarations ###
 
@@ -23,6 +25,7 @@ class Column:
         self.raw_name = raw_name
         self.name = name
         self.data_type = data_type
+        self.kwargs = kwargs
         if kwargs.get('conversion_function'):
             self.conversion_function = kwargs.get('conversion_function')
         else:
@@ -105,8 +108,12 @@ class Schema:
         self.tables = set()
         self.creation_function = creation_function
 
+    def set_name(self, new_name: str):
+        '''Sets the name of the schema'''
+        self.name = new_name
 
-    def create(self, connection, connection_pool):
+    def create(self, connection: pyodbc.Connection, connection_pool: ConnectionPool):
+        '''Creates the database using a predefined creation function'''
         if self.creation_function is None:
             logging.warning('Creation function is not defined for %s', self.name)
         self.creation_function(self.name, connection, connection_pool)

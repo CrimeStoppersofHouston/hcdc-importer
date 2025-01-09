@@ -48,24 +48,14 @@ class FlagParser(argparse.ArgumentParser):
 
         self.add_argument(
             '-e',
-            '--extension',
-            type=str,
-            help='The extension to filter by when using the --directory argument',
+            '--extensions',
+            nargs='+',
+            default=[],
+            help='The extensions to filter by when using the --directory argument',
         )
 
         self.add_argument(
             '-debug', action='store_true', default=False, help='Enable debug mode'
-        )
-
-        self.add_argument(
-            '-skipv',
-            '--skipVerification',
-            action='store_true',
-            default=False,
-            help='''
-                    Skips the integrity checks for columns. 
-                    (Recommended when importing multiple files)
-                ''',
         )
 
         self.add_argument(
@@ -99,10 +89,10 @@ class FlagParser(argparse.ArgumentParser):
         )
 
         self.add_argument(
-            '-skipCreation',
+            '-createDatabase',
             action='store_true',
             default=False,
-            help='Skips creation of database'
+            help='Creates the database if it does not exist'
         )
 
         self.add_argument(
@@ -113,7 +103,7 @@ class FlagParser(argparse.ArgumentParser):
 
         self.args = self.parse_args()
 
-        if self.args.directory and self.args.extension is None:
+        if self.args.directory and self.args.extensions == []:
             self.error('--directory requires --extension argument')
 
         if self.args.depth and self.args.recursive is None:

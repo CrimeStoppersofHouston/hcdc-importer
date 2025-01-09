@@ -1,13 +1,8 @@
 '''
-# @ Author: Ryan Barnes
-# @ Create Time: 2024-05-30 12:17:51
-# @ Modified by: Ryan Barnes
-# @ Modified time: 2024-05-30 12:18:17
-# @ Description:
-       This file should contain functions that handle the
-       flow of the program. Additional responisibilities
+       This module should contain functions that handle the
+       flow of file handling. Additional responisibilities
        should be handed off to other files, such as insertion
-       and sanitization.
+       and merging
 '''
 
 ### External Imports ###
@@ -18,22 +13,21 @@ import threading
 
 ### Internal Imports ###
 
-from automation.schema_creation import create_hcdc_snapshot, create_hpd
 from config.flag_parser import FlagParser
 from config.states import FileStateHolder, FileStates
+from config.import_type import ImportType
 from handler.state_handler import change_file_state
-from model.database import hcdc_snapshot, hpd_database
 from utility.connection.connection_pool import ConnectionPool
-from utility.connection.cursor_actions import insert_to_table, insert_from_stage_table, reset_stage_table
 from utility.file.load import load_dataframe_csv, load_dataframe_excel
 from utility.progress_tracking import ProgressTracker, Task
+from handler.insertion_handler import handle_insert
 
 ### Function Declarations ###
-
 
 def handle_file(filepaths):
     '''Takes a filepath and imports it into the database'''
     parser = FlagParser()
+    import_type = ImportType()
     connection_pool = ConnectionPool(
         os.getenv('USERNAME'),
         os.getenv('PASSWORD'),
@@ -42,22 +36,14 @@ def handle_file(filepaths):
         os.getenv('DEFAULT_DATABASE'),
         os.getenv('DRIVER'),
     )
-    if not parser.args.skipCreation:
-        match parser.args.type:
-            case 'hcdc':
-                connection_pool.add_connection()
-                conn = connection_pool.get_available_connection()
-                create_hcdc_snapshot.create(os.getenv('CREATE_DATABASE'), conn, connection_pool)
-                connection_pool.clear()
-            case 'hpd':
-                connection_pool.add_connection()
-                conn = connection_pool.get_available_connection()
-                create_hpd.create(os.getenv('CREATE_DATABASE'), conn, connection_pool)
-                connection_pool.clear()
-            case _:
-                logging.error('Unimplemented type : %s', parser.args.type)
-                raise ValueError(f'Unimplemented type :{parser.args.type}')
-        connection_pool.set_database(os.getenv('CREATE_DATABASE'))
+
+    import_type.model.set_name(os.getenv('WORKING_DATABASE'))
+    if parser.args.createDatabase:
+        connection_pool.add_connection()
+        conn = connection_pool.get_available_connection()
+        import_type.model.create(conn, connection_pool)
+        connection_pool.clear()
+    connection_pool.set_database(import_type.model.name)
 
     for i, current_filepath in enumerate(filepaths):
         file_state = FileStateHolder()
@@ -81,8 +67,8 @@ def handle_file(filepaths):
                     loading_task = Task('Loading', 1)
                     tracker.add_task(loading_task)
                     tracker.update()
-
-                    match os.path.splitext(current_filepath)[1]:
+                    logging.debug(os.path.splitext(current_filepath)[-1:][0])
+                    match os.path.splitext(current_filepath)[-1:][0]:
                         case '.xlsx':
                             df = load_dataframe_excel(current_filepath)
                         case '.csv':
@@ -99,6 +85,7 @@ def handle_file(filepaths):
                                 os.path.splitext(current_filepath)[1]
                             )
                             file_state.set_state(FileStates.END)
+                            break
                     tracker.clear()
                     logging.info('%s loaded successfully!', current_filepath)
                     loading_task.add_progress(1)
@@ -108,105 +95,19 @@ def handle_file(filepaths):
                     tracker.clear()
                     logging.info('Sanitizing columns for insertion...')
                     tracker.update(True)
-                    match parser.args.type:
-                        case 'hcdc':
-                            conversion_dict = hcdc_snapshot.database.get_conversion_dict()
-                            sanitization_task = Task('Converting columns', len(conversion_dict))
-                            tracker.add_task(sanitization_task)
-                            for column, conversion_func in conversion_dict.items():
-                                df[column] = df[column].apply(conversion_func)
-                                sanitization_task.add_progress(1)
-                                tracker.update()
-                            model = hcdc_snapshot.database
-                        case 'hpd':
-                            conversion_dict = hpd_database.database.get_conversion_dict()
-                            sanitization_task = Task('Converting columns', len(conversion_dict))
-                            tracker.add_task(sanitization_task)
-                            for column, conversion_func in conversion_dict.items():
-                                df[column] = df[column].apply(conversion_func)
-                                sanitization_task.add_progress(1)
-                                tracker.update()
-                            model = hpd_database.database
-                        case _:
-                            raise ValueError(
-                                f'Unimplemented format: {parser.args.type}'
-                            )
-                    model.name = connection_pool.database
-                    tracker.clear()
-                    logging.info('All columns sanitized!')
-                    tracker.update(True)
 
-                case FileStates.STAGING:
-                    if model.staging_required:
-                        tracker.clear()
-                        logging.info('Inserting to stage tables')
-                        tracker.update(True)
-                        threads = []
-                        while not model.is_completed():
-                            table = model.get_available_table()
-                            if (
-                                table is None or
-                                connection_pool.all_connections_blocked()
-                            ):
-                                if len(threads) > 0:
-                                    threads.pop().join()
-                                continue
-
-                            if (
-                                len(connection_pool.available_connections) == 0
-                                and len(connection_pool.pool) < connection_pool.max_connections
-                            ):
-                                connection_pool.add_connection()
-
-                            if len(connection_pool.available_connections) > 0:
-                                connection = connection_pool.get_available_connection()
-                                t = threading.Thread(
-                                    target=insert_to_table,
-                                    args=[connection_pool, connection, df, model, table, tracker]
-                                )
-                                threads.insert(0, t)
-                                t.start()
-
-                        connection_pool.clear()
-                        tracker.clear()
-                        logging.info('Finished inserting to stage tables')
-                        tracker.update(True)
-                        model.reset_schema()
+                    sanitization_task = Task('Converting columns', len(import_type.model.get_conversion_dict()))
+                    tracker.add_task(sanitization_task)
+                    for column, conversion_func in import_type.model.get_conversion_dict().items():
+                        df[column] = df[column].apply(conversion_func)
+                        sanitization_task.add_progress(1)
+                        tracker.update()
 
                 case FileStates.INSERT:
-                    tracker.clear()
-                    logging.info('Inserting to final tables, blocked conns')
-                    tracker.update(True)
+                    handle_insert(df, connection_pool, tracker)
 
-                    threads = []
-                    while not model.is_completed():
-                        table = model.get_available_table()
-                        if (
-                            table is None or
-                            connection_pool.all_connections_blocked()
-                        ):
-                            if len(threads) > 0:
-                                threads.pop().join()
-                            continue
-
-                        if (
-                            len(connection_pool.available_connections) == 0
-                            and len(connection_pool.pool) < connection_pool.max_connections
-                        ):
-                            connection_pool.add_connection()
-
-                        if len(connection_pool.available_connections) > 0:
-                            connection = connection_pool.get_available_connection()
-                            t = threading.Thread(
-                                target = insert_to_final_table,
-                                args=[connection_pool, connection, model, table, tracker]
-                            )
-                            threads.insert(0, t)
-                            t.start()
-
-                    connection_pool.clear()
-                    model.reset_schema()
-                    tracker.clear()
-                    logging.info('Finished merging into final tables')
+                case _:
+                    logging.error('File state %s unaccounted for! Exiting...', file_state.get_state())
+                    exit(1)
 
             change_file_state(file_state)
