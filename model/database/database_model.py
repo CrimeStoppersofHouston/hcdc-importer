@@ -187,7 +187,7 @@ class Schema:
             return None
         for table in self.pending_tables:
             if table.prereqs.issubset(self.completed_tables):
-                self.advance_table_state(table)
+                logging.debug('Table %s can be handled! Advancing and returning', table.name)
                 return table
             logging.debug('Cannot handle %s, not all prerequisites are completed', table.name)
         logging.debug('There are no tables that can be handled')

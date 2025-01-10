@@ -35,6 +35,7 @@ def handle_file(filepaths):
         os.getenv('PORT'),
         os.getenv('DEFAULT_DATABASE'),
         os.getenv('DRIVER'),
+        5
     )
 
     import_type.model.set_name(os.getenv('WORKING_DATABASE'))

@@ -20,9 +20,10 @@ def load_dataframe_csv(filepath, delimiter:str = ',', encoding_type='utf-8') -> 
         raise ValueError(f'File {filepath} does not exist')
     try:
         with contextlib.closing(open(filepath, 'r', encoding=encoding_type)) as f:
-            df = pd.read_csv(f, sep=delimiter, dtype=str, engine='python', float_precision='round_trip')
-            df = df.replace(np.nan, None)
-            return df
+            with pd.option_context('display.precision', 8):
+                df = pd.read_csv(f, sep=delimiter, dtype=str, engine='python')
+                df = df.replace(np.nan, None)
+                return df
     except Exception as e:
         raise AttributeError(f'Cannot read CSV file: {e}') from e
 
@@ -31,7 +32,7 @@ def load_dataframe_excel(filepath) -> pd.DataFrame:
     if not os.path.exists(filepath):
         raise ValueError(f'File {filepath} does not exist')
     try:
-        with pd.option_context('display.precision', 3):
+        with pd.option_context('display.precision', 8):
             df = pd.read_excel(filepath, dtype=str)
             df = df.replace(np.nan, None)
             return df

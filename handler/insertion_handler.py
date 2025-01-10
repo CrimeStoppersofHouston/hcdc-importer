@@ -45,7 +45,9 @@ def handle_insert(df: pd.DataFrame, connection_pool: ConnectionPool, tracker: Pr
                         connection_pool.all_connections_blocked()
                     ):
                         if len(threads) > 0:
-                            threads.pop().join()
+                            t = threads.pop()
+                            logging.debug('Joining thread %s', t.name)
+                            t.join()
                         continue
 
                     # If there are no connections and there is still room for one,
@@ -59,10 +61,12 @@ def handle_insert(df: pd.DataFrame, connection_pool: ConnectionPool, tracker: Pr
                     # If there is an available connection, handle the table retrieved earlier
                     if len(connection_pool.available_connections) > 0:
                         connection = connection_pool.get_available_connection()
+                        import_type.model.advance_table_state(table)
                         t = threading.Thread(
                             target=insert_to_stage_table,
                             args=[connection_pool, connection, df, import_type.model, table, tracker]
                         )
+                        t.name = f'stage_{table.name}'
                         threads.insert(0, t)
                         t.start()
 
@@ -87,7 +91,9 @@ def handle_insert(df: pd.DataFrame, connection_pool: ConnectionPool, tracker: Pr
                         connection_pool.all_connections_blocked()
                     ):
                         if len(threads) > 0:
-                            threads.pop().join()
+                            t = threads.pop()
+                            logging.debug('Joining thread %s', t.name)
+                            t.join()
                         continue
 
                     # If there are no connections and there is still room for one,
@@ -101,10 +107,12 @@ def handle_insert(df: pd.DataFrame, connection_pool: ConnectionPool, tracker: Pr
                     # If there is an available connection, handle the table retrieved earlier
                     if len(connection_pool.available_connections) > 0:
                         connection = connection_pool.get_available_connection()
+                        import_type.model.advance_table_state(table)
                         t = threading.Thread(
                             target = merge_from_stage_table,
                             args=[connection_pool, connection, import_type.model, table, tracker]
                         )
+                        t.name = f'{table.name}'
                         threads.insert(0, t)
                         t.start()
 
@@ -128,7 +136,9 @@ def handle_insert(df: pd.DataFrame, connection_pool: ConnectionPool, tracker: Pr
                         connection_pool.all_connections_blocked()
                     ):
                         if len(threads) > 0:
-                            threads.pop().join()
+                            t = threads.pop()
+                            logging.debug('Joining thread %s', t.name)
+                            t.join()
                         continue
 
                     # If there are no connections and there is still room for one,
@@ -142,10 +152,12 @@ def handle_insert(df: pd.DataFrame, connection_pool: ConnectionPool, tracker: Pr
                     # If there is an available connection, handle the table retrieved earlier
                     if len(connection_pool.available_connections) > 0:
                         connection = connection_pool.get_available_connection()
+                        import_type.model.advance_table_state(table)
                         t = threading.Thread(
                             target = insert_to_table,
                             args=[connection_pool, connection, df, import_type.model, table, tracker]
                         )
+                        t.name = f'{table.name}'
                         threads.insert(0, t)
                         t.start()
 

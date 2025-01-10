@@ -20,19 +20,19 @@ CREATE TABLE IF NOT EXISTS `attorney` (
   `spn` varchar(8) NOT NULL,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`spn`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 CREATE TABLE IF NOT EXISTS `case_type` (
   `id` tinyint unsigned NOT NULL,
   `literal` varchar(15) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 CREATE TABLE IF NOT EXISTS `case_status` (
   `id` varchar(1) NOT NULL,
   `literal` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 CREATE TABLE IF NOT EXISTS `defendant` (
   `spn` varchar(8) NOT NULL,
@@ -47,19 +47,19 @@ CREATE TABLE IF NOT EXISTS `defendant` (
   `zip` varchar(10) DEFAULT NULL,
   `citizen` varchar(2) DEFAULT NULL,
   PRIMARY KEY (`spn`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 CREATE TABLE IF NOT EXISTS `defendant_status` (
   `id` varchar(1) NOT NULL,
   `literal` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 CREATE TABLE IF NOT EXISTS `disposition` (
   `id` varchar(4) NOT NULL,
   `literal` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 CREATE TABLE IF NOT EXISTS `event` (
   `entry` bigint NOT NULL AUTO_INCREMENT,
@@ -74,13 +74,13 @@ CREATE TABLE IF NOT EXISTS `event` (
   `next_appearance` date DEFAULT NULL,
   PRIMARY KEY (`entry`, `case_id`,`case_type_id`),
   UNIQUE KEY `events_UI` (`case_id`,`case_type_id`,`disposition`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 CREATE TABLE IF NOT EXISTS `offense` (
   `id` int NOT NULL,
   `literal` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 CREATE TABLE IF NOT EXISTS `report` (
   `num` int NOT NULL AUTO_INCREMENT,
@@ -89,14 +89,14 @@ CREATE TABLE IF NOT EXISTS `report` (
   `name` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`num`,`id`),
   UNIQUE KEY `report_UI` (`id`,`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=10302 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 CREATE TABLE IF NOT EXISTS `stage_attorney` (
   `entry` int NOT NULL AUTO_INCREMENT,
   `spn` varchar(8) NOT NULL,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`entry`,`spn`)
-) ENGINE=InnoDB AUTO_INCREMENT=9554 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 CREATE TABLE IF NOT EXISTS `stage_defendant` (
   `entry` int NOT NULL AUTO_INCREMENT,
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS `stage_defendant` (
   `zip` varchar(10) DEFAULT NULL,
   `citizen` varchar(2) DEFAULT NULL,
   PRIMARY KEY (`entry`,`spn`)
-) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 CREATE TABLE IF NOT EXISTS `stage_event` (
   `entry` int NOT NULL AUTO_INCREMENT,
@@ -126,14 +126,14 @@ CREATE TABLE IF NOT EXISTS `stage_event` (
   `bond_explanation` varchar(30) DEFAULT NULL,
   `next_appearance` date DEFAULT NULL,
   PRIMARY KEY (`entry`,`case_id`,`case_type_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 CREATE TABLE IF NOT EXISTS `stage_offense` (
   `entry` int NOT NULL AUTO_INCREMENT,
   `id` int NOT NULL,
   `literal` varchar(255) NOT NULL,
   PRIMARY KEY (`entry`,`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 CREATE TABLE IF NOT EXISTS `stage_report` (
   `entry` int NOT NULL AUTO_INCREMENT,
@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS `stage_report` (
   `agency` varchar(50) DEFAULT NULL,
   `name` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`entry`,`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9915 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 CREATE TABLE IF NOT EXISTS `stage_cases` (
   `entry` int NOT NULL AUTO_INCREMENT,
@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS `stage_cases` (
   `court` smallint DEFAULT NULL,
   `filing_date` date NOT NULL,
   PRIMARY KEY (`entry`,`id`,`case_type_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 CREATE TABLE IF NOT EXISTS `cases` (
   `id` bigint NOT NULL,
@@ -184,7 +184,7 @@ CREATE TABLE IF NOT EXISTS `cases` (
   CONSTRAINT `cases_ibfk_6` FOREIGN KEY (`attorney_spn`) REFERENCES `attorney` (`spn`),
   CONSTRAINT `cases_ibfk_7` FOREIGN KEY (`id`, `case_type_id`) REFERENCES `event` (`case_id`, `case_type_id`),
   CONSTRAINT `cases_ibfk_8` FOREIGN KEY (`case_type_id`) REFERENCES `case_type` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 alter table event AUTO_INCREMENT = 1;
 alter table report AUTO_INCREMENT = 1;

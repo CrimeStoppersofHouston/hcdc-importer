@@ -66,6 +66,7 @@ def reset_stage_table(cursor:pyodbc.Cursor, schema: Schema, table: Table) -> Non
     logging.debug('Created empty stage_%s', table.name)
     execute_sql(cursor, f'drop table {schema.name}.stage_{table.name}_temp')
     execute_sql(cursor, f'alter table {schema.name}.stage_{table.name} auto_increment = 1')
+    cursor.commit()
     logging.debug('stage_%s cleared!', table.name)
 
 
@@ -76,7 +77,7 @@ def insert_to_stage_table(
     schema: Schema,
     table: Table,
     tracker: ProgressTracker,
-    limit = 1000
+    limit = 500
 ) -> None:
     '''
         Inserts data from a dataframe given a connection object, a schema, 
@@ -116,6 +117,7 @@ def insert_to_stage_table(
                  f'UPDATE `{column_keys[0]}`=`{column_keys[0]}`;')
             )
             table_task.set_progress(total_rows)
+            tracker.update()
         cursor.commit()
         schema.advance_table_state(table)
         connection_pool.free_connection(connection)
@@ -126,7 +128,7 @@ def merge_from_stage_table(
     schema: Schema,
     table: Table,
     tracker: ProgressTracker,
-    limit = 1000
+    limit = 500
 ):
     '''Inserts data from staging table to final table'''
     with closing(connection.cursor()) as cursor:
@@ -165,7 +167,7 @@ def insert_to_table(
     schema: Schema,
     table: Table,
     tracker: ProgressTracker,
-    limit = 1000
+    limit = 500
 ):
     '''
         Inserts data from a dataframe given a connection object, a schema, 
@@ -204,6 +206,7 @@ def insert_to_table(
                  f'UPDATE {", ".join([f"`{key}`=`{key}`" for key in column_keys])};')
             )
             table_task.set_progress(total_rows)
+            tracker.update()
         cursor.commit()
         schema.advance_table_state(table)
         connection_pool.free_connection(connection)
