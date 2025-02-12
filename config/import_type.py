@@ -11,7 +11,7 @@ import logging
 
 ### Internal Imports ###
 
-from model.database import hcdc_snapshot, hpd_database
+from model.database import hcdc_snapshot, hpd_database, crime_index
 from config.flag_parser import FlagParser
 from utility.connection.connection_pool import ConnectionPool
 
@@ -34,5 +34,8 @@ class ImportType():
             case 'hpd':
                 self.name = 'Houston Police Department Beats'
                 self.model = hpd_database.database
+            case 'ci':
+                self.name = 'Crime Index'
+                self.model = crime_index.database
             case _:
                 logging.error('Undefined import type %s!', parser.args.type)
